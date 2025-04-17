@@ -1,7 +1,5 @@
 package ra.edu.presentation;
 
-
-
 import ra.edu.business.dao.account.AccountDAOImpl;
 import ra.edu.business.model.Account;
 import ra.edu.business.service.account.AccountServiceImpl;
@@ -33,7 +31,7 @@ public class LoginUI {
                     login("USER");
                     break;
                 case "3":
-                    System.out.println("Chức năng đăng ký đang được phát triển hoặc bị vô hiệu hóa.");
+                    RegisterUI.displayRegisterMenu();
                     break;
                 case "4":
                     System.out.println("Thoát chương trình. Tạm biệt!");
@@ -50,7 +48,7 @@ public class LoginUI {
         System.out.print("Nhập mật khẩu: ");
         String password = scanner.nextLine();
 
-        Account account = loginAccount.login(username, password,expectedRole);
+        Account account = loginAccount.login(username, password, expectedRole);
         if (account == null) {
             System.out.println("Đăng nhập thất bại. Sai thông tin đăng nhập.");
             return;

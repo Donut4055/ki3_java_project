@@ -1,23 +1,28 @@
 package ra.edu.business.service.account;
 
-
-import ra.edu.business.dao.account.IAccountDAO;
+import ra.edu.business.dao.account.AccountDAOImpl;
 import ra.edu.business.model.Account;
 
-public class AccountServiceImpl implements IAccountService {
-    private IAccountDAO accountDAO;
+public class AccountServiceImpl {
 
-    public AccountServiceImpl(IAccountDAO accountDAO) {
+    private AccountDAOImpl accountDAO;
+
+    public AccountServiceImpl(AccountDAOImpl accountDAO) {
         this.accountDAO = accountDAO;
     }
+    public int getLastInsertedCandidateId() {
+        return accountDAO.getLastInsertedCandidateId();
+    }
+    public boolean registerUser(String username, String password, String name, String email, String phone, String gender, String dob, String description, int experience) {
+        return accountDAO.createUserAccount(username, password, name, email, phone, gender, dob, description, experience);
+    }
 
-    @Override
-    public Account login(String username, String password, String role) {
-        try {
-            return accountDAO.login(username, password, role);
-        } catch (Exception e) {
-            System.out.println("Lỗi đăng nhập: " + e.getMessage());
-            return null;
-        }
+    public boolean saveUserInfo(int candidateId, String name, String email, String phone, String gender, int experience, String description, String dob) {
+        return accountDAO.saveUserInfo(candidateId, name, email, phone, gender, experience, description, dob);
+    }
+
+    public Account login(String username, String password, String expectedRole) {
+        // Gọi DAO để thực hiện đăng nhập và kiểm tra quyền người dùng
+        return accountDAO.login(username, password, expectedRole);
     }
 }
