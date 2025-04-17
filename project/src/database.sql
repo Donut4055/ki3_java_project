@@ -77,3 +77,19 @@ CREATE TABLE application (
     FOREIGN KEY (candidateId) REFERENCES candidate(id),
     FOREIGN KEY (recruitmentPositionId) REFERENCES recruitment_position(id)
 );
+
+DELIMITER $$
+-- login
+CREATE PROCEDURE sp_login_account (
+    IN p_username VARCHAR(50),
+    IN p_password VARCHAR(255),
+    IN p_role ENUM('ADMIN', 'USER')
+)
+BEGIN
+    SELECT * FROM _account
+    WHERE username = p_username
+      AND password = p_password
+      AND role = p_role;
+END $$
+
+DELIMITER ;
