@@ -5,6 +5,8 @@ import ra.edu.business.dao.account.AccountDAOImpl;
 
 import java.util.Scanner;
 
+import static java.lang.System.exit;
+
 public class RegisterUI {
     private static final Scanner scanner = new Scanner(System.in);
     private static final AccountServiceImpl accountService = new AccountServiceImpl(new AccountDAOImpl());
@@ -28,29 +30,15 @@ public class RegisterUI {
         System.out.print("Nhập mô tả về ứng viên: ");
         String description = scanner.nextLine();
 
-        // Nhập kinh nghiệm
         System.out.print("Nhập kinh nghiệm: ");
         int experience = Integer.parseInt(scanner.nextLine());
 
-        // Đăng ký tài khoản và ứng viên
         boolean isRegistered = accountService.registerUser(
                 username, password, name, email, phone, gender, dob, description, experience
         );
         if (isRegistered) {
             System.out.println("Đăng ký tài khoản thành công!");
 
-            System.out.println("Vui lòng nhập thông tin cá nhân:");
-
-            // Lấy candidateId từ bảng _account (có thể lấy từ kết quả trả về trong DAO)
-            int candidateId = 1;  // Ví dụ, lấy candidateId vừa tạo (có thể lấy từ DAO hoặc stored procedure)
-
-            // Cập nhật thông tin cá nhân vào bảng candidate
-            boolean isInfoSaved = accountService.saveUserInfo(candidateId, name, email, phone, gender, experience, description, dob);
-            if (isInfoSaved) {
-                System.out.println("Thông tin cá nhân đã được lưu!");
-            } else {
-                System.out.println("Lỗi khi lưu thông tin cá nhân!");
-            }
         } else {
             System.out.println("Đăng ký thất bại. Tên đăng nhập đã tồn tại hoặc có lỗi xảy ra.");
         }

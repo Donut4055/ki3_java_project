@@ -40,7 +40,7 @@ public class AccountDAOImpl implements IAccountDAO {
 
     @Override
     public boolean createUserAccount(String username, String password, String name, String email, String phone, String gender, String dob, String description, int experience) {
-        String sql = "{CALL register_user(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";  // Gọi stored procedure
+        String sql = "{CALL register_user(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
         try (Connection conn = ConnectionDB.getConnection();
              CallableStatement ps = conn.prepareCall(sql)) {
 
@@ -90,20 +90,6 @@ public class AccountDAOImpl implements IAccountDAO {
             e.printStackTrace();
             return false;
         }
-    }
-    public int getLastInsertedCandidateId() {
-        String sql = "SELECT LAST_INSERT_ID()";
-        try (Connection conn = ConnectionDB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
     }
 
 

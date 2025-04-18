@@ -3,6 +3,7 @@ package ra.edu.business.service.account;
 import ra.edu.business.dao.account.AccountDAOImpl;
 import ra.edu.business.model.Account;
 
+
 public class AccountServiceImpl {
 
     private AccountDAOImpl accountDAO;
@@ -10,9 +11,7 @@ public class AccountServiceImpl {
     public AccountServiceImpl(AccountDAOImpl accountDAO) {
         this.accountDAO = accountDAO;
     }
-    public int getLastInsertedCandidateId() {
-        return accountDAO.getLastInsertedCandidateId();
-    }
+
     public boolean registerUser(String username, String password, String name, String email, String phone, String gender, String dob, String description, int experience) {
         return accountDAO.createUserAccount(username, password, name, email, phone, gender, dob, description, experience);
     }
@@ -22,7 +21,6 @@ public class AccountServiceImpl {
     }
 
     public Account login(String username, String password, String expectedRole) {
-        // Gọi DAO để thực hiện đăng nhập và kiểm tra quyền người dùng
         return accountDAO.login(username, password, expectedRole);
     }
 }
