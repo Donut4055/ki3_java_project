@@ -45,13 +45,13 @@ public class CandidateUI {
                     filterCandidatesByExperience();
                     break;
                 case 6:
-//                    filterCandidatesByAge();
+                    filterCandidatesByAge();
                     break;
                 case 7:
                     filterCandidatesByGender();
                     break;
                 case 8:
-//                    filterCandidatesByTechnology();
+                    filterCandidatesByTechnology();
                     break;
                 case 0:
                     System.out.println(">>> Quay về menu chính.");
@@ -130,21 +130,21 @@ public class CandidateUI {
         }
     }
 
-    // Lọc ứng viên theo tuổi
-//    private static void filterCandidatesByAge() {
-//        System.out.print("Nhập độ tuổi tối thiểu: ");
-//        int age = Integer.parseInt(scanner.nextLine());
-//
-//        List<Candidate> candidates = candidateService.filterCandidatesByAge(age);
-//        if (!candidates.isEmpty()) {
-//            System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-//            for (Candidate candidate : candidates) {
-//                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName() );
-//            }
-//        } else {
-//            System.out.println("Không tìm thấy ứng viên với độ tuổi yêu cầu.");
-//        }
-//    }
+    //     Lọc ứng viên theo tuổi
+    private static void filterCandidatesByAge() {
+        System.out.print("Nhập độ tuổi tối thiểu: ");
+        int age = Integer.parseInt(scanner.nextLine());
+
+        List<Candidate> candidates = candidateService.filterCandidatesByAge(age);
+        if (!candidates.isEmpty()) {
+            System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
+            for (Candidate candidate : candidates) {
+                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName());
+            }
+        } else {
+            System.out.println("Không tìm thấy ứng viên với độ tuổi yêu cầu.");
+        }
+    }
 
     // Lọc ứng viên theo giới tính
     private static void filterCandidatesByGender() {
@@ -162,19 +162,18 @@ public class CandidateUI {
         }
     }
 
-    // Lọc ứng viên theo công nghệ
-//    private static void filterCandidatesByTechnology() {
-//        System.out.print("Nhập ID công nghệ: ");
-//        int technologyId = Integer.parseInt(scanner.nextLine());
-//
-//        List<Candidate> candidates = candidateService.filterCandidatesByTechnology(technologyId);
-//        if (!candidates.isEmpty()) {
-//            System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-//            for (Candidate candidate : candidates) {
-//                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName() + ", Công nghệ: " + candidate.getTechnology());
-//            }
-//        } else {
-//            System.out.println("Không tìm thấy ứng viên với công nghệ yêu cầu.");
-//        }
-    }
+    private static void filterCandidatesByTechnology() {
+        System.out.print("Nhập ID công nghệ: ");
+        int technologyId = Integer.parseInt(scanner.nextLine());
 
+        List<Candidate> candidates = candidateService.filterCandidatesByTechnology(technologyId);
+        if (!candidates.isEmpty()) {
+            System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
+            for (Candidate candidate : candidates) {
+                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName());
+            }
+        } else {
+            System.out.println("Không tìm thấy ứng viên với công nghệ yêu cầu.");
+        }
+    }
+}

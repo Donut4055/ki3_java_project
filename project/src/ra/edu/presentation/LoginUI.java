@@ -5,12 +5,15 @@ import ra.edu.business.model.Account;
 import ra.edu.business.service.account.AccountServiceImpl;
 import ra.edu.presentation.admin.AdminMenu;
 import ra.edu.presentation.user.UserMenu;
-
+import ra.edu.MainApplication;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class LoginUI {
     private static final Scanner scanner = new Scanner(System.in);
     private static final AccountServiceImpl loginAccount = new AccountServiceImpl(new AccountDAOImpl());
+    private static final String LOGIN_FILE = "isLoggedIn.txt";
 
     public static void displayLoginMenu() {
         while (true) {
@@ -34,8 +37,11 @@ public class LoginUI {
                     RegisterUI.displayRegisterMenu();
                     break;
                 case "4":
+                    clearLoginFile();
+                    MainApplication.currentUser = null;
                     System.out.println("Thoát chương trình. Tạm biệt!");
                     System.exit(0);
+                    break;
                 default:
                     System.out.println("Lựa chọn không hợp lệ. Vui lòng thử lại.");
             }
@@ -59,12 +65,29 @@ public class LoginUI {
             return;
         }
 
-        System.out.println("Đăng nhập thành công!");
+        MainApplication.currentUser = account;
+        writeLoginFile(account);
 
+        System.out.println("Đăng nhập thành công!");
         if (account.getRole().equalsIgnoreCase("ADMIN")) {
             AdminMenu.showMenu();
         } else {
             UserMenu.showMenu();
+        }
+    }
+
+    private static void writeLoginFile(Account account) {
+        try (FileWriter writer = new FileWriter(LOGIN_FILE)) {
+            writer.write("ID:" + account.getId() + ",Username:" + account.getUsername() + ",Role:" + account.getRole());
+        } catch (IOException e) {
+            System.err.println("Lỗi khi ghi file đăng nhập: " + e.getMessage());
+        }
+    }
+
+    public static void clearLoginFile() {
+        try (FileWriter writer = new FileWriter(LOGIN_FILE)) {
+        } catch (IOException e) {
+            System.err.println("Lỗi khi xóa file đăng nhập: " + e.getMessage());
         }
     }
 }

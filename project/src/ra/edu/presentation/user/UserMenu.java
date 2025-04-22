@@ -1,6 +1,13 @@
 package ra.edu.presentation.user;
 
+
+import ra.edu.presentation.LoginUI;
+
 import java.util.Scanner;
+
+import static ra.edu.MainApplication.currentUser;
+import static ra.edu.presentation.LoginUI.clearLoginFile;
+
 
 public class UserMenu {
     private static final Scanner scanner = new Scanner(System.in);
@@ -18,7 +25,7 @@ public class UserMenu {
 
             switch (choice) {
                 case 1:
-                    PersonalInfoUI.showMenu();
+                    PersonalInfoUI.showMenu(currentUser.getId());
                     break;
                 case 2:
                     RecruitmentApplicationUI.showMenu();
@@ -28,6 +35,8 @@ public class UserMenu {
                     break;
                 case 0:
                     System.out.println(">>> Đăng xuất thành công.");
+                    clearLoginFile();
+                    LoginUI.displayLoginMenu();
                     break;
                 default:
                     System.out.println(">>> Lựa chọn không hợp lệ.");

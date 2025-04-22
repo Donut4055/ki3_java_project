@@ -1,6 +1,10 @@
     package ra.edu.presentation.admin;
 
+    import ra.edu.presentation.LoginUI;
+
     import java.util.Scanner;
+
+    import static ra.edu.presentation.LoginUI.clearLoginFile;
 
     public class AdminMenu {
         private static final Scanner scanner = new Scanner(System.in);
@@ -28,6 +32,8 @@
                         break;
                     case 0:
                         System.out.println(">>> Đăng xuất thành công.");
+                        clearLoginFile();
+                        LoginUI.displayLoginMenu();
                         break;
                     default:
                         System.out.println(">>> Lựa chọn không hợp lệ.");

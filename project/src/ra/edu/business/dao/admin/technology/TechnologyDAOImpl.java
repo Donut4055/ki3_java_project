@@ -31,7 +31,6 @@ public class TechnologyDAOImpl implements ITechnologyDAO {
         return technologies;
     }
 
-    // Kiểm tra tên công nghệ đã tồn tại trong cơ sở dữ liệu chưa
     public boolean isTechnologyNameExist(String technologyName) {
         String sql = "SELECT COUNT(*) FROM technology WHERE name = ?";
         try (Connection conn = ConnectionDB.getConnection();

@@ -122,8 +122,31 @@ public class CandidateDAOImpl implements ICandidateDAO {
 
     @Override
     public List<Candidate> filterCandidatesByAge(int age) {
-        return List.of();
+        List<Candidate> candidates = new ArrayList<>();
+        String sql = "{CALL filter_candidates_by_age(?)}";  // Gọi stored procedure
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, age);
+            ResultSet rs = cs.executeQuery();
+            while (rs.next()) {
+                candidates.add(new Candidate(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("phone"),
+                        rs.getInt("experience"),
+                        rs.getString("gender"),
+                        rs.getString("status"),
+                        rs.getString("description"),
+                        rs.getDate("dob")
+                ));
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi lọc ứng viên theo tuổi: " + e.getMessage());
+        }
+        return candidates;
     }
+
 
     @Override
     public List<Candidate> filterCandidatesByGender(String gender) {
@@ -154,7 +177,32 @@ public class CandidateDAOImpl implements ICandidateDAO {
 
     @Override
     public List<Candidate> filterCandidatesByTechnology(int technologyId) {
-        return List.of();
+        List<Candidate> candidates = new ArrayList<>();
+        String sql = "{CALL filter_candidates_by_technology(?)}";  // Gọi stored procedure lọc theo công nghệ
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+
+            cs.setInt(1, technologyId);
+            ResultSet rs = cs.executeQuery();
+
+            while (rs.next()) {
+                candidates.add(new Candidate(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("phone"),
+                        rs.getInt("experience"),
+                        rs.getString("gender"),
+                        rs.getString("status"),
+                        rs.getString("description"),
+                        rs.getDate("dob")
+                ));
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi lọc ứng viên theo công nghệ: " + e.getMessage());
+        }
+        return candidates;
     }
+
 
 }
