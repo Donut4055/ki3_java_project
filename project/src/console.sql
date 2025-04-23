@@ -6,7 +6,7 @@ USE recruitment_system;
 
 
 CREATE TABLE technology (
-                            id INT PRIMARY KEY AUTO_INCREMENT,
+                            technology_id INT PRIMARY KEY AUTO_INCREMENT,
                             name VARCHAR(100) NOT NULL UNIQUE
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE candidate_technology (
                                       technologyId INT NOT NULL,
                                       PRIMARY KEY (candidateId, technologyId),
                                       FOREIGN KEY (candidateId) REFERENCES candidate(id),
-                                      FOREIGN KEY (technologyId) REFERENCES technology(id)
+                                      FOREIGN KEY (technologyId) REFERENCES technology(technology_id)
 );
 
 
@@ -57,7 +57,7 @@ CREATE TABLE recruitment_position_technology (
                                                  technologyId INT NOT NULL,
                                                  PRIMARY KEY (recruitmentPositionId, technologyId),
                                                  FOREIGN KEY (recruitmentPositionId) REFERENCES recruitment_position(id),
-                                                 FOREIGN KEY (technologyId) REFERENCES technology(id)
+                                                 FOREIGN KEY (technologyId) REFERENCES technology(technology_id)
 );
 
 
@@ -83,21 +83,28 @@ CREATE TABLE application (
 
 
 DELIMITER $$
--- login
-CREATE PROCEDURE sp_login_account (
+CREATE PROCEDURE sp_login_account(
     IN p_username VARCHAR(50),
     IN p_password VARCHAR(255),
-    IN p_role ENUM('ADMIN', 'USER')
+    IN p_role     ENUM('ADMIN','USER')
 )
 BEGIN
-    SELECT * FROM _account
-    WHERE username = p_username
-      AND password = p_password
-      AND role = p_role;
+    SELECT
+        a.id,
+        a.username,
+        a.password,
+        a.role,
+        COALESCE(c.status, 'active') AS status
+    FROM _account a
+             LEFT JOIN candidate c
+                       ON a.candidateId = c.id
+    WHERE a.username = p_username
+      AND a.password = p_password
+      AND a.role     = p_role;
 END $$
 DELIMITER ;
 
-DELIMITER $$
+
 
 CREATE PROCEDURE register_user(
     IN p_username VARCHAR(50),
@@ -108,18 +115,15 @@ CREATE PROCEDURE register_user(
     IN p_experience INT,
     IN p_gender VARCHAR(10),
     IN p_description TEXT,
-    IN p_dob DATE,  -- Đảm bảo tham số dob được khai báo đúng
+    IN p_dob DATE,
     OUT p_new_candidate_id INT
 )
 BEGIN
-    -- Thêm thông tin ứng viên vào bảng candidate
     INSERT INTO candidate (name, email, phone, experience, gender, status, description, dob)
     VALUES (p_name, p_email, p_phone, p_experience, p_gender, 'active', p_description, p_dob); -- Sử dụng tham số dob
 
-    -- Lấy id của ứng viên vừa thêm vào bảng candidate
     SET p_new_candidate_id = LAST_INSERT_ID();
 
-    -- Thêm tài khoản vào bảng _account và liên kết với ứng viên
     INSERT INTO _account (username, password, role, candidateId)
     VALUES (p_username, p_password, 'USER', p_new_candidate_id);
 
@@ -154,5 +158,437 @@ END $$
 
 DELIMITER ;
 
+DELIMITER $$
+CREATE PROCEDURE get_technologies(IN offset INT, IN pageLimit INT)
+BEGIN
+    SELECT * FROM technology LIMIT offset, pageLimit;
+END $$
+DELIMITER ;
 
 
+DELIMITER $$
+CREATE PROCEDURE add_technology(IN name VARCHAR(255))
+BEGIN
+    INSERT INTO technology (name) VALUES (name);
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE update_technology(IN id_in INT, IN newName VARCHAR(255))
+BEGIN
+    UPDATE technology SET name = newName WHERE technology_id = id_in;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE delete_technology(IN id_in INT)
+BEGIN
+    DECLARE techName VARCHAR(255);
+
+    SELECT name INTO techName
+    FROM technology
+    WHERE technology_id = id_in;
+    IF EXISTS (SELECT 1 FROM recruitment_position_technology WHERE technologyId = id_in) THEN
+        UPDATE technology
+        SET name = CONCAT(name, '_deleted')
+        WHERE technology_id = id_in;
+    ELSE
+        DELETE FROM technology WHERE technology_id = id_in;
+    END IF;
+END $$
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE PROCEDURE get_candidates(IN offset INT, IN pageLimit INT)
+BEGIN
+    SELECT * FROM candidate LIMIT offset, pageLimit;
+END $$
+
+DELIMITER ;
+DELIMITER $$
+
+CREATE PROCEDURE lock_unlock_account(
+    IN p_candidateId INT,
+    IN p_status VARCHAR(20)
+)
+BEGIN
+    UPDATE candidate
+    SET status = p_status
+    WHERE id = p_candidateId;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE reset_password(
+    IN p_candidateId INT,
+    OUT p_new_password VARCHAR(255)
+)
+BEGIN
+    SET p_new_password = CONCAT('Pass', FLOOR(1000 + (RAND() * 8999)));  -- Random mật khẩu
+    UPDATE _account
+    SET password = p_new_password
+    WHERE candidateId = p_candidateId;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE PROCEDURE search_candidate_by_name(
+    IN p_name VARCHAR(100)
+)
+BEGIN
+    SELECT * FROM candidate WHERE name LIKE CONCAT('%', p_name, '%');
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE filter_candidates_by_experience(
+    IN p_experience INT
+)
+BEGIN
+    SELECT * FROM candidate WHERE experience >= p_experience;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE filter_candidates_by_age(
+    IN p_age INT
+)
+BEGIN
+    SELECT * FROM candidate WHERE TIMESTAMPDIFF(YEAR, dob, CURDATE()) >= p_age;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE filter_candidates_by_gender(
+    IN p_gender VARCHAR(10)
+)
+BEGIN
+    SELECT * FROM candidate WHERE gender = p_gender;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE filter_candidates_by_technology(
+    IN p_technologyId INT
+)
+BEGIN
+    SELECT c.*
+    FROM candidate c
+             JOIN candidate_technology ct ON c.id = ct.candidateId
+    WHERE ct.technologyId = p_technologyId;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+-- 1. Lấy vị trí tuyển dụng (bỏ qua tên kết thúc '_deleted')
+CREATE PROCEDURE get_recruitment_positions(
+    IN p_offset INT,
+    IN p_limit INT
+)
+BEGIN
+    SELECT *
+    FROM recruitment_position
+    WHERE name NOT LIKE '%\\_deleted'
+    ORDER BY id
+    LIMIT p_offset, p_limit;
+END $$
+
+-- 2. Thêm vị trí tuyển dụng và trả về ID mới
+CREATE PROCEDURE add_recruitment_position(
+    IN p_name VARCHAR(100),
+    IN p_description TEXT,
+    IN p_minSalary DECIMAL(12,2),
+    IN p_maxSalary DECIMAL(12,2),
+    IN p_minExperience INT,
+    IN p_expiredDate DATE,
+    OUT p_new_id INT
+)
+BEGIN
+    INSERT INTO recruitment_position
+    (name, description, minSalary, maxSalary, minExperience, createdDate, expiredDate)
+    VALUES
+        (p_name, p_description, p_minSalary, p_maxSalary, p_minExperience, CURDATE(), p_expiredDate);
+    SET p_new_id = LAST_INSERT_ID();
+END $$
+
+-- 3. Link position với technology
+CREATE PROCEDURE link_position_technology(
+    IN p_positionId INT,
+    IN p_technologyId INT
+)
+BEGIN
+    INSERT INTO recruitment_position_technology
+    (recruitmentPositionId, technologyId)
+    VALUES
+        (p_positionId, p_technologyId);
+END $$
+
+-- 4. Cập nhật vị trí tuyển dụng (và xóa liên kết cũ)
+CREATE PROCEDURE update_recruitment_position(
+    IN p_id INT,
+    IN p_name VARCHAR(100),
+    IN p_description TEXT,
+    IN p_minSalary DECIMAL(12,2),
+    IN p_maxSalary DECIMAL(12,2),
+    IN p_minExperience INT,
+    IN p_expiredDate DATE
+)
+BEGIN
+    UPDATE recruitment_position
+    SET name = p_name,
+        description = p_description,
+        minSalary = p_minSalary,
+        maxSalary = p_maxSalary,
+        minExperience = p_minExperience,
+        expiredDate = p_expiredDate
+    WHERE id = p_id;
+    DELETE FROM recruitment_position_technology WHERE recruitmentPositionId = p_id;
+END $$
+
+-- 5. Xóa vị trí tuyển dụng hoặc đổi tên nếu có FK
+CREATE PROCEDURE delete_recruitment_position(
+    IN p_id INT
+)
+BEGIN
+    DECLARE posName VARCHAR(100);
+    SELECT name INTO posName FROM recruitment_position WHERE id = p_id;
+    IF EXISTS (
+        SELECT 1 FROM recruitment_position_technology
+        WHERE recruitmentPositionId = p_id
+    ) THEN
+        UPDATE recruitment_position
+        SET name = CONCAT(name, '_deleted')
+        WHERE id = p_id;
+    ELSE
+        DELETE FROM recruitment_position WHERE id = p_id;
+    END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+-- 1. Cập nhật thông tin cá nhân ứng viên
+CREATE PROCEDURE sp_update_candidate_profile(
+    IN p_candidateId INT,
+    IN p_name VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_phone VARCHAR(20),
+    IN p_gender VARCHAR(10),
+    IN p_dob DATE,
+    IN p_description TEXT
+)
+BEGIN
+    CALL update_candidate_info(p_candidateId, p_name, p_email, p_phone, p_gender, 0, p_description, p_dob);
+END $$
+DELIMITER $$
+-- 2. Đổi mật khẩu ứng viên
+CREATE PROCEDURE sp_change_candidate_password(
+    IN  p_candidateId   INT,
+    IN  p_oldPassword   VARCHAR(255),
+    IN  p_newPassword   VARCHAR(255),
+    OUT p_success       TINYINT
+)
+BEGIN
+    DECLARE cnt INT DEFAULT 0;
+    -- Kiểm tra mật khẩu cũ
+    SELECT COUNT(*) INTO cnt
+    FROM _account
+    WHERE candidateId = p_candidateId
+      AND password    = p_oldPassword;
+
+    IF cnt = 1 THEN
+        -- Nếu đúng, cập nhật mật khẩu mới
+        UPDATE _account
+        SET password = p_newPassword
+        WHERE candidateId = p_candidateId;
+        SET p_success = 1;
+    ELSE
+        -- Nếu sai, trả về false
+        SET p_success = 0;
+    END IF;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+-- 1. Lấy danh sách đơn ứng tuyển đã apply của ứng viên (phân trang)
+CREATE PROCEDURE sp_get_submitted_applications(
+    IN p_candidateId INT,
+    IN p_offset INT,
+    IN p_limit INT
+)
+BEGIN
+    SELECT *
+    FROM application
+    WHERE candidateId = p_candidateId
+    ORDER BY createAt DESC
+    LIMIT p_offset, p_limit;
+END $$
+
+-- 2. Xem chi tiết đơn ứng tuyển
+CREATE PROCEDURE sp_get_application_details(
+    IN p_applicationId INT
+)
+BEGIN
+    SELECT * FROM application
+    WHERE id = p_applicationId;
+END $$
+
+-- 3. Lấy danh sách vị trí tuyển dụng đang hoạt động (phân trang)
+CREATE PROCEDURE sp_get_active_positions(
+    IN p_offset INT,
+    IN p_limit INT
+)
+BEGIN
+    SELECT *
+    FROM recruitment_position
+    WHERE expiredDate >= CURDATE()
+      AND name NOT LIKE '%\_deleted'
+    ORDER BY createdDate DESC
+    LIMIT p_offset, p_limit;
+END $$
+
+-- 4. Xem chi tiết vị trí tuyển dụng
+CREATE PROCEDURE sp_get_position_details(
+    IN p_positionId INT
+)
+BEGIN
+    SELECT * FROM recruitment_position
+    WHERE id = p_positionId;
+END $$
+
+-- 5. Ứng tuyển vị trí
+CREATE PROCEDURE sp_submit_application(
+    IN p_candidateId INT,
+    IN p_positionId INT,
+    IN p_cvUrl VARCHAR(255)
+)
+BEGIN
+    INSERT INTO application (candidateId, recruitmentPositionId, cvUrl)
+    VALUES (p_candidateId, p_positionId, p_cvUrl);
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+-- 1. Danh sách đơn ứng tuyển (chưa huỷ) phân trang
+CREATE PROCEDURE sp_admin_list_applications(
+    IN p_offset INT,
+    IN p_limit  INT
+)
+BEGIN
+    SELECT *
+    FROM application
+    WHERE destroyAt IS NULL
+    ORDER BY createAt DESC
+    LIMIT p_offset, p_limit;
+END $$
+
+-- 2. Lọc đơn theo progress
+CREATE PROCEDURE sp_admin_filter_by_progress(
+    IN p_progress VARCHAR(20),
+    IN p_offset   INT,
+    IN p_limit    INT
+)
+BEGIN
+    SELECT *
+    FROM application
+    WHERE progress = p_progress
+      AND destroyAt IS NULL
+    ORDER BY createAt DESC
+    LIMIT p_offset, p_limit;
+END $$
+
+-- 3. Lọc đơn theo interviewResult
+CREATE PROCEDURE sp_admin_filter_by_result(
+    IN p_result VARCHAR(50),
+    IN p_offset INT,
+    IN p_limit  INT
+)
+BEGIN
+    SELECT *
+    FROM application
+    WHERE interviewResult = p_result
+      AND destroyAt IS NULL
+    ORDER BY createAt DESC
+    LIMIT p_offset, p_limit;
+END $$
+
+-- 4. Huỷ đơn ứng tuyển
+CREATE PROCEDURE sp_admin_cancel_application(
+    IN p_appId INT,
+    IN p_reason TEXT
+)
+BEGIN
+    UPDATE application
+    SET destroyAt     = NOW(),
+        destroyReason = p_reason,
+        progress      = 'done'
+    WHERE id = p_appId;
+END $$
+
+-- 5. Xem đơn và chuyển pending->handling
+CREATE PROCEDURE sp_admin_view_application(
+    IN p_appId INT
+)
+BEGIN
+    UPDATE application
+    SET progress = CASE WHEN progress = 'pending' THEN 'handling' ELSE progress END
+    WHERE id = p_appId;
+    SELECT *
+    FROM application
+    WHERE id = p_appId;
+END $$
+
+-- 6. Chuyển sang interviewing
+CREATE PROCEDURE sp_admin_set_interview(
+    IN p_appId INT,
+    IN p_link  VARCHAR(255),
+    IN p_time  DATETIME
+)
+BEGIN
+    UPDATE application
+    SET interviewRequestDate = NOW(),
+        interviewLink        = p_link,
+        interviewTime        = p_time,
+        progress             = 'interviewing'
+    WHERE id = p_appId;
+END $$
+
+-- 7. Cập nhật kết quả phỏng vấn
+CREATE PROCEDURE sp_admin_update_result(
+    IN p_appId   INT,
+    IN p_result  VARCHAR(50),
+    IN p_note    TEXT
+)
+BEGIN
+    UPDATE application
+    SET interviewResult     = p_result,
+        interviewResultNote = p_note,
+        progress            = 'done'
+    WHERE id = p_appId;
+END $$
+
+DELIMITER ;
