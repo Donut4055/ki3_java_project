@@ -5,15 +5,17 @@ public class Account {
     private String username;
     private String password;
     private String role; // ADMIN hoặc USER
+    private String status;
 
     public Account() {
     }
 
-    public Account(int id, String username, String password, String role) {
+    public Account(int id, String username, String password, String role, String status) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.role = role;
+        this.status   = status;
     }
 
     public int getId() {
@@ -47,6 +49,14 @@ public class Account {
     public void setRole(String role) {
         this.role = role;
     }
+
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "Account{" +

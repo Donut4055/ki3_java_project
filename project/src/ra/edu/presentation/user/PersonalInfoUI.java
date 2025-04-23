@@ -1,27 +1,28 @@
 package ra.edu.presentation.user;
 
+import ra.edu.business.model.Account;
+import ra.edu.business.model.Application;
+import ra.edu.business.model.RecruitmentPosition;
 import ra.edu.business.service.user.personalInfo.IPersonalIInfoService;
 import ra.edu.business.service.user.personalInfo.IPersonalIInfoServiceImpl;
 import ra.edu.validate.UserValidator;
 import ra.edu.validate.Validator;
-
-import java.util.Scanner;
+import ra.edu.MainApplication;
+import static ra.edu.utils.InputUtils.readInt;
+import static ra.edu.utils.InputUtils.readNonEmptyString;
 
 public class PersonalInfoUI {
-    private static final Scanner scanner = new Scanner(System.in);
     private static final IPersonalIInfoService accountService = new IPersonalIInfoServiceImpl();
     private static int candidateId;
 
     public static void showMenu(int loggedInCandidateId) {
         candidateId = loggedInCandidateId;
-        int choice;
-        do {
+        while (true) {
             System.out.println("\n===== THÔNG TIN CÁ NHÂN =====");
             System.out.println("1. Cập nhật thông tin");
             System.out.println("2. Đổi mật khẩu");
             System.out.println("0. Quay lại");
-            System.out.print("Chọn: ");
-            choice = Integer.parseInt(scanner.nextLine());
+            int choice = readInt("Chọn: ");
             switch (choice) {
                 case 1:
                     updateProfile();
@@ -31,52 +32,46 @@ public class PersonalInfoUI {
                     break;
                 case 0:
                     System.out.println(">>> Quay lại menu.");
-                    break;
+                    return;
                 default:
                     System.out.println(">>> Lựa chọn không hợp lệ.");
             }
-        } while (choice != 0);
+        }
     }
 
     private static void updateProfile() {
-        System.out.print("Tên mới: ");
-        String name = scanner.nextLine();
+        String name = readNonEmptyString("Tên mới: ");
         if (!UserValidator.isValidUsername(name)) {
             System.out.println(">>> Tên không hợp lệ.");
             return;
         }
 
-        System.out.print("Email mới: ");
-        String email = scanner.nextLine();
+        String email = readNonEmptyString("Email mới: ");
         if (!Validator.isValidEmail(email)) {
             System.out.println(">>> Email không đúng định dạng.");
             return;
         }
 
-        System.out.print("SĐT mới: ");
-        String phone = scanner.nextLine();
+        String phone = readNonEmptyString("SĐT mới: ");
         if (!Validator.isValidPhone(phone)) {
             System.out.println(">>> Số điện thoại không hợp lệ.");
             return;
         }
 
-        System.out.print("Giới tính (Nam/Nữ): ");
-        String gender = scanner.nextLine();
+        String gender = readNonEmptyString("Giới tính (Nam/Nữ): ");
         if (!gender.equalsIgnoreCase("Nam") && !gender.equalsIgnoreCase("Nữ")) {
             System.out.println(">>> Giới tính phải là 'Nam' hoặc 'Nữ'.");
             return;
         }
 
-        System.out.print("Ngày sinh (yyyy-MM-dd): ");
-        String dob = scanner.nextLine();
+        String dob = readNonEmptyString("Ngày sinh (yyyy-MM-dd): ");
         if (!Validator.isValidDate(dob)) {
             System.out.println(">>> Ngày sinh không đúng định dạng yyyy-MM-dd.");
             return;
         }
 
-        System.out.print("Giới thiệu bản thân: ");
-        String desc = scanner.nextLine();
-        if (desc == null || desc.trim().isEmpty()) {
+        String desc = readNonEmptyString("Giới thiệu bản thân: ");
+        if (desc.trim().isEmpty()) {
             System.out.println(">>> Mô tả không được để trống.");
             return;
         }
@@ -86,11 +81,8 @@ public class PersonalInfoUI {
     }
 
     private static void changePassword() {
-        System.out.print("Mật khẩu hiện tại: ");
-        String currentPass = scanner.nextLine();
-
-        System.out.print("Mật khẩu mới: ");
-        String newPass = scanner.nextLine();
+        String currentPass = readNonEmptyString("Mật khẩu hiện tại: ");
+        String newPass = readNonEmptyString("Mật khẩu mới: ");
         if (!UserValidator.isValidPassword(newPass)) {
             System.out.println(">>> Mật khẩu mới phải ≥ 6 ký tự.");
             return;

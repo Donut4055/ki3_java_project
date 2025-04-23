@@ -2,19 +2,18 @@ package ra.edu.presentation.admin;
 
 import ra.edu.business.model.Candidate;
 import ra.edu.business.service.admin.candidate.CandidateServiceImpl;
+import static ra.edu.utils.InputUtils.readInt;
+import static ra.edu.utils.InputUtils.readNonEmptyString;
 
 import java.util.List;
-import java.util.Scanner;
 
 public class CandidateUI {
 
-    private static final Scanner scanner = new Scanner(System.in);
     private static final CandidateServiceImpl candidateService = new CandidateServiceImpl();
 
     // Hiển thị menu quản lý ứng viên
     public static void showMenu() {
-        int choice;
-        do {
+        while (true) {
             System.out.println("\n===== MENU QUẢN LÝ ỨNG VIÊN =====");
             System.out.println("1. Hiển thị danh sách ứng viên");
             System.out.println("2. Khoá/Mở khoá tài khoản ứng viên");
@@ -25,8 +24,7 @@ public class CandidateUI {
             System.out.println("7. Lọc ứng viên theo giới tính");
             System.out.println("8. Lọc ứng viên theo công nghệ");
             System.out.println("0. Quay về menu chính");
-            System.out.print("Chọn: ");
-            choice = Integer.parseInt(scanner.nextLine());
+            int choice = readInt("Chọn: ");
 
             switch (choice) {
                 case 1:
@@ -55,28 +53,25 @@ public class CandidateUI {
                     break;
                 case 0:
                     System.out.println(">>> Quay về menu chính.");
-                    break;
+                    return;
                 default:
                     System.out.println(">>> Lựa chọn không hợp lệ.");
             }
-        } while (choice != 0);
+        }
     }
 
     // Hiển thị danh sách ứng viên
     private static void displayCandidates() {
         System.out.println("===== DANH SÁCH ỨNG VIÊN =====");
-        List<Candidate> candidates = candidateService.getCandidates(1, 10);  // Lấy danh sách ứng viên với phân trang (page 1, page size 10)
-        for (Candidate candidate : candidates) {
-            System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName() + ", Email: " + candidate.getEmail());
-        }
+        List<Candidate> candidates = candidateService.getCandidates(1, 10);
+        candidates.forEach(c -> System.out.println(
+                "ID: " + c.getId() + ", Tên: " + c.getName() + ", Email: " + c.getEmail()));
     }
 
     // Khoá/Mở khoá tài khoản ứng viên
     private static void lockUnlockAccount() {
-        System.out.print("Nhập ID ứng viên: ");
-        int candidateId = Integer.parseInt(scanner.nextLine());
-        System.out.print("Nhập trạng thái (active/locked): ");
-        String status = scanner.nextLine();
+        int candidateId = readInt("Nhập ID ứng viên: ");
+        String status = readNonEmptyString("Nhập trạng thái (active/locked): ");
 
         if (candidateService.lockUnlockAccount(candidateId, status)) {
             System.out.println("Trạng thái tài khoản đã được thay đổi.");
@@ -87,9 +82,7 @@ public class CandidateUI {
 
     // Reset mật khẩu ứng viên
     private static void resetPassword() {
-        System.out.print("Nhập ID ứng viên: ");
-        int candidateId = Integer.parseInt(scanner.nextLine());
-
+        int candidateId = readInt("Nhập ID ứng viên: ");
         String newPassword = candidateService.resetPassword(candidateId);
         if (newPassword != null) {
             System.out.println("Mật khẩu mới của ứng viên là: " + newPassword);
@@ -100,15 +93,12 @@ public class CandidateUI {
 
     // Tìm kiếm ứng viên theo tên
     private static void searchCandidateByName() {
-        System.out.print("Nhập tên ứng viên cần tìm: ");
-        String name = scanner.nextLine();
-
+        String name = readNonEmptyString("Nhập tên ứng viên cần tìm: ");
         List<Candidate> candidates = candidateService.searchCandidateByName(name);
         if (!candidates.isEmpty()) {
             System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-            for (Candidate candidate : candidates) {
-                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName() + ", Email: " + candidate.getEmail());
-            }
+            candidates.forEach(c -> System.out.println(
+                    "ID: " + c.getId() + ", Tên: " + c.getName() + ", Email: " + c.getEmail()));
         } else {
             System.out.println("Không tìm thấy ứng viên.");
         }
@@ -116,31 +106,25 @@ public class CandidateUI {
 
     // Lọc ứng viên theo kinh nghiệm
     private static void filterCandidatesByExperience() {
-        System.out.print("Nhập mức kinh nghiệm (>=): ");
-        int experience = Integer.parseInt(scanner.nextLine());
-
+        int experience = readInt("Nhập mức kinh nghiệm (>=): ");
         List<Candidate> candidates = candidateService.filterCandidatesByExperience(experience);
         if (!candidates.isEmpty()) {
             System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-            for (Candidate candidate : candidates) {
-                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName() + ", Kinh nghiệm: " + candidate.getExperience());
-            }
+            candidates.forEach(c -> System.out.println(
+                    "ID: " + c.getId() + ", Tên: " + c.getName() + ", Kinh nghiệm: " + c.getExperience()));
         } else {
             System.out.println("Không tìm thấy ứng viên với mức kinh nghiệm yêu cầu.");
         }
     }
 
-    //     Lọc ứng viên theo tuổi
+    // Lọc ứng viên theo tuổi
     private static void filterCandidatesByAge() {
-        System.out.print("Nhập độ tuổi tối thiểu: ");
-        int age = Integer.parseInt(scanner.nextLine());
-
+        int age = readInt("Nhập độ tuổi tối thiểu: ");
         List<Candidate> candidates = candidateService.filterCandidatesByAge(age);
         if (!candidates.isEmpty()) {
             System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-            for (Candidate candidate : candidates) {
-                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName());
-            }
+            candidates.forEach(c -> System.out.println(
+                    "ID: " + c.getId() + ", Tên: " + c.getName()));
         } else {
             System.out.println("Không tìm thấy ứng viên với độ tuổi yêu cầu.");
         }
@@ -148,30 +132,25 @@ public class CandidateUI {
 
     // Lọc ứng viên theo giới tính
     private static void filterCandidatesByGender() {
-        System.out.print("Nhập giới tính (Nam/Nữ): ");
-        String gender = scanner.nextLine();
-
+        String gender = readNonEmptyString("Nhập giới tính (Nam/Nữ): ");
         List<Candidate> candidates = candidateService.filterCandidatesByGender(gender);
         if (!candidates.isEmpty()) {
             System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-            for (Candidate candidate : candidates) {
-                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName() + ", Giới tính: " + candidate.getGender());
-            }
+            candidates.forEach(c -> System.out.println(
+                    "ID: " + c.getId() + ", Tên: " + c.getName() + ", Giới tính: " + c.getGender()));
         } else {
             System.out.println("Không tìm thấy ứng viên với giới tính yêu cầu.");
         }
     }
 
+    // Lọc ứng viên theo công nghệ
     private static void filterCandidatesByTechnology() {
-        System.out.print("Nhập ID công nghệ: ");
-        int technologyId = Integer.parseInt(scanner.nextLine());
-
+        int technologyId = readInt("Nhập ID công nghệ: ");
         List<Candidate> candidates = candidateService.filterCandidatesByTechnology(technologyId);
         if (!candidates.isEmpty()) {
             System.out.println("Tìm thấy " + candidates.size() + " ứng viên:");
-            for (Candidate candidate : candidates) {
-                System.out.println("ID: " + candidate.getId() + ", Tên: " + candidate.getName());
-            }
+            candidates.forEach(c -> System.out.println(
+                    "ID: " + c.getId() + ", Tên: " + c.getName()));
         } else {
             System.out.println("Không tìm thấy ứng viên với công nghệ yêu cầu.");
         }

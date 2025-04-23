@@ -8,10 +8,10 @@ import ra.edu.presentation.user.UserMenu;
 import ra.edu.MainApplication;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Scanner;
+import static ra.edu.utils.InputUtils.readInt;
+import static ra.edu.utils.InputUtils.readNonEmptyString;
 
 public class LoginUI {
-    private static final Scanner scanner = new Scanner(System.in);
     private static final AccountServiceImpl loginAccount = new AccountServiceImpl(new AccountDAOImpl());
     private static final String LOGIN_FILE = "isLoggedIn.txt";
 
@@ -23,20 +23,19 @@ public class LoginUI {
             System.out.println("3. Đăng ký tài khoản Ứng viên");
             System.out.println("4. Thoát");
             System.out.println("==========================================");
-            System.out.print("Nhập lựa chọn: ");
-            String choice = scanner.nextLine();
+            int choice = readInt("Chọn: ");
 
             switch (choice) {
-                case "1":
+                case 1:
                     login("ADMIN");
                     break;
-                case "2":
+                case 2:
                     login("USER");
                     break;
-                case "3":
+                case 3:
                     RegisterUI.displayRegisterMenu();
                     break;
-                case "4":
+                case 4:
                     clearLoginFile();
                     MainApplication.currentUser = null;
                     System.out.println("Thoát chương trình. Tạm biệt!");
@@ -49,17 +48,18 @@ public class LoginUI {
     }
 
     private static void login(String expectedRole) {
-        System.out.print("Nhập tên đăng nhập: ");
-        String username = scanner.nextLine();
-        System.out.print("Nhập mật khẩu: ");
-        String password = scanner.nextLine();
+        String username = readNonEmptyString("Nhập tên đăng nhập: ");
+        String password = readNonEmptyString("Nhập mật khẩu: ");
 
         Account account = loginAccount.login(username, password, expectedRole);
         if (account == null) {
             System.out.println("Đăng nhập thất bại. Sai thông tin đăng nhập.");
             return;
         }
-
+        if ("locked".equalsIgnoreCase(account.getStatus())) {
+            System.out.println(">>> Tài khoản của bạn đã bị khoá. Liên hệ admin.");
+            return;
+        }
         if (!account.getRole().equalsIgnoreCase(expectedRole)) {
             System.out.println("Bạn không có quyền truy cập vào khu vực này.");
             return;
@@ -78,7 +78,12 @@ public class LoginUI {
 
     private static void writeLoginFile(Account account) {
         try (FileWriter writer = new FileWriter(LOGIN_FILE)) {
-            writer.write("ID:" + account.getId() + ",Username:" + account.getUsername() + ",Role:" + account.getRole());
+            writer.write(
+                    "ID:" + account.getId()
+                            + ",Username:" + account.getUsername()
+                            + ",Role:" + account.getRole()
+                            + ",Status:" + account.getStatus()   // ← thêm đây
+            );
         } catch (IOException e) {
             System.err.println("Lỗi khi ghi file đăng nhập: " + e.getMessage());
         }
@@ -86,6 +91,7 @@ public class LoginUI {
 
     public static void clearLoginFile() {
         try (FileWriter writer = new FileWriter(LOGIN_FILE)) {
+            // Xóa nội dung file
         } catch (IOException e) {
             System.err.println("Lỗi khi xóa file đăng nhập: " + e.getMessage());
         }

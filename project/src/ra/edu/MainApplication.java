@@ -4,9 +4,10 @@ import ra.edu.business.model.Account;
 import ra.edu.presentation.MainUI;
 import ra.edu.presentation.admin.AdminMenu;
 import ra.edu.presentation.user.UserMenu;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class MainApplication {
     public static Account currentUser;
@@ -15,7 +16,8 @@ public class MainApplication {
     public static void main(String[] args) {
         readLoginFile();
         if (currentUser != null) {
-            System.out.println("Chào mừng trở lại, " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
+            System.out.println("Chào mừng trở lại, " + currentUser.getUsername()
+                    + " (" + currentUser.getRole() + ")");
             if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
                 AdminMenu.showMenu();
             } else {
@@ -27,38 +29,33 @@ public class MainApplication {
     }
 
     private static void readLoginFile() {
-        File file = new File(LOGIN_FILE);
-        if (!file.exists()) {
-            return;
-        }
+        Path path = Paths.get(LOGIN_FILE);
+        if (!Files.exists(path)) return;
+
         try {
-            String content = new String(Files.readAllBytes(file.toPath())).trim();
-            if (content.isEmpty()) {
-                return;
-            }
+            String content = Files.readString(path).trim();
+            if (content.isEmpty()) return;
+
             String[] parts = content.split(",");
-            int id = 0;
-            String username = "";
-            String role = "";
+            int id = -1;
+            String username = null, role = null, status = null;
             for (String part : parts) {
-                String[] kv = part.split(":");
-                if (kv.length == 2) {
-                    switch (kv[0]) {
-                        case "ID":
-                            id = Integer.parseInt(kv[1]);
-                            break;
-                        case "Username":
-                            username = kv[1];
-                            break;
-                        case "Role":
-                            role = kv[1];
-                            break;
-                    }
+                String[] kv = part.split(":", 2);
+                if (kv.length != 2) continue;
+                String key = kv[0].trim(), value = kv[1].trim();
+                switch (key) {
+                    case "ID":       id = Integer.parseInt(value); break;
+                    case "Username": username = value; break;
+                    case "Role":     role = value; break;
+                    case "Status":   status = value; break;
                 }
             }
-            currentUser = new Account(id, username, null, role);
+            if (id >= 0 && username != null && role != null && status != null) {
+                currentUser = new Account(id, username, null, role, status);
+            }
         } catch (IOException e) {
             System.err.println("Lỗi khi đọc file đăng nhập: " + e.getMessage());
         }
     }
+
 }

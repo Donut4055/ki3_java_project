@@ -9,34 +9,28 @@ public class AccountDAOImpl implements IAccountDAO {
 
     @Override
     public Account login(String username, String password, String role) {
-        Connection conn = null;
-        CallableStatement cs = null;
-        ResultSet rs = null;
-
-        try {
-            conn = ConnectionDB.getConnection();
-            cs = conn.prepareCall("{CALL sp_login_account(?, ?, ?)}");
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall("{CALL sp_login_account(?,?,?)}")) {
             cs.setString(1, username);
             cs.setString(2, password);
             cs.setString(3, role);
 
-            rs = cs.executeQuery();
+            ResultSet rs = cs.executeQuery();
             if (rs.next()) {
                 return new Account(
                         rs.getInt("id"),
                         rs.getString("username"),
                         rs.getString("password"),
-                        rs.getString("role")
+                        rs.getString("role"),
+                        rs.getString("status")
                 );
             }
         } catch (SQLException e) {
             System.err.println("Lỗi login: " + e.getMessage());
-        } finally {
-            ConnectionDB.closeConnection(conn, cs, rs);
         }
-
         return null;
     }
+
 
     @Override
     public boolean createUserAccount(String username, String password, String name, String email, String phone, String gender, String dob, String description, int experience) {

@@ -154,7 +154,7 @@ public class CandidateDAOImpl implements ICandidateDAO {
         String sql = "{CALL filter_candidates_by_gender(?)}";
         try (Connection conn = ConnectionDB.getConnection();
              CallableStatement cs = conn.prepareCall(sql)) {
-            cs.setInt(gender, 1);
+            cs.setString(1, gender);  // Fix: Use setString() with parameter index 1
             ResultSet rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
@@ -174,6 +174,7 @@ public class CandidateDAOImpl implements ICandidateDAO {
         }
         return candidates;
     }
+
 
     @Override
     public List<Candidate> filterCandidatesByTechnology(int technologyId) {

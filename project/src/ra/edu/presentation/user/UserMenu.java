@@ -1,27 +1,20 @@
 package ra.edu.presentation.user;
 
-
+import static ra.edu.utils.InputUtils.readInt;
 import ra.edu.presentation.LoginUI;
-
-import java.util.Scanner;
-
-import static ra.edu.MainApplication.currentUser;
 import static ra.edu.presentation.LoginUI.clearLoginFile;
-
+import static ra.edu.MainApplication.currentUser;
 
 public class UserMenu {
-    private static final Scanner scanner = new Scanner(System.in);
 
     public static void showMenu() {
-        int choice;
-        do {
+        while (true) {
             System.out.println("\n===== MENU ỨNG VIÊN =====");
             System.out.println("1. Quản lý Thông tin cá nhân");
             System.out.println("2. Xem và Nộp đơn tuyển dụng");
             System.out.println("3. Quản lý đơn ứng tuyển");
             System.out.println("0. Đăng xuất");
-            System.out.print("Chọn: ");
-            choice = Integer.parseInt(scanner.nextLine());
+            int choice = readInt("Chọn: ");
 
             switch (choice) {
                 case 1:
@@ -37,10 +30,10 @@ public class UserMenu {
                     System.out.println(">>> Đăng xuất thành công.");
                     clearLoginFile();
                     LoginUI.displayLoginMenu();
-                    break;
+                    return;
                 default:
                     System.out.println(">>> Lựa chọn không hợp lệ.");
             }
-        } while (choice != 0);
+        }
     }
 }
