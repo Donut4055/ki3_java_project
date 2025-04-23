@@ -24,7 +24,7 @@ public class MainApplication {
                 UserMenu.showMenu();
             }
         } else {
-            MainUI.main(args);
+            MainUI.DisplayMenu();
         }
     }
 
@@ -58,4 +58,4 @@ public class MainApplication {
         }
     }
 
-}
+};

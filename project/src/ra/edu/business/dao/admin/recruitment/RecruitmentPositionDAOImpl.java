@@ -104,4 +104,18 @@ public class RecruitmentPositionDAOImpl implements IRecruitmentPositionDAO {
             return false;
         }
     }
+    @Override
+    public int countPositions() {
+        String sql = "{CALL sp_count_recruitment_positions()}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            ResultSet rs = cs.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi đếm vị trí tuyển dụng: " + e.getMessage());
+        }
+        return 0;
+    }
 }

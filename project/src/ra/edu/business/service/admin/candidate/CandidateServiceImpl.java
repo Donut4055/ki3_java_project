@@ -48,4 +48,9 @@ public class CandidateServiceImpl implements ICandidateService {
     public List<Candidate> filterCandidatesByTechnology(int technologyId) {
         return candidateDAO.filterCandidatesByTechnology(technologyId);
     }
+
+    @Override
+    public int countCandidates() {
+        return candidateDAO.countCandidates();
+    }
 }

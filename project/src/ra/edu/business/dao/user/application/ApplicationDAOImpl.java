@@ -143,4 +143,51 @@ public class ApplicationDAOImpl implements IApplicationDAO {
             return false;
         }
     }
+
+    @Override
+    public int countSubmittedApplications(int candidateId) {
+        String sql = "{CALL sp_count_submitted_applications(?)}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, candidateId);
+            ResultSet rs = cs.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi đếm đơn đã nộp: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean respondToInterview(int appId, boolean confirm) {
+        String response = confirm ? "Confirmed" : "Declined";
+        String sql = "{CALL sp_candidate_respond_interview(?, ?)}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, appId);
+            cs.setString(2, response);
+            cs.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Lỗi phản hồi phỏng vấn: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public int countActivePositions() {
+        String sql = "{CALL sp_count_active_positions()}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            ResultSet rs = cs.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi đếm vị trí active: " + e.getMessage());
+        }
+        return 0;
+    }
 }

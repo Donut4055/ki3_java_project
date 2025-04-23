@@ -12,4 +12,5 @@ public interface ITechnologyDAO {
     static boolean isTechnologyNameExist(String technologyName) {
         return false;
     }
+    int countTechnologies();
 }

@@ -29,4 +29,9 @@ public class RecruitmentPositionServiceImpl implements IRecruitmentPositionServi
     public boolean deletePosition(int id) {
         return dao.deletePosition(id);
     }
+
+    @Override
+    public int countPositions() {
+        return dao.countPositions();
+    }
 }

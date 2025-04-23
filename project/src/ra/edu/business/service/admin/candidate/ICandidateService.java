@@ -13,4 +13,5 @@ public interface ICandidateService {
     List<Candidate> filterCandidatesByAge(int age);
     List<Candidate> filterCandidatesByGender(String gender);
     List<Candidate> filterCandidatesByTechnology(int technologyId);
+    int countCandidates();
 }

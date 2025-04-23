@@ -90,4 +90,18 @@ public class TechnologyDAOImpl implements ITechnologyDAO {
         }
     }
 
+    @Override
+    public int countTechnologies() {
+        String sql = "{CALL sp_count_technologies()}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            ResultSet rs = cs.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi đếm công nghệ: " + e.getMessage());
+        }
+        return 0;
+    }
 }

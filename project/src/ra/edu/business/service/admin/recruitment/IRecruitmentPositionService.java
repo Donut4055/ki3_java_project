@@ -8,4 +8,5 @@ public interface IRecruitmentPositionService {
     int addPosition(RecruitmentPosition rp, List<Integer> techIds);
     boolean updatePosition(RecruitmentPosition rp, List<Integer> techIds);
     boolean deletePosition(int id);
+    int countPositions();
 }

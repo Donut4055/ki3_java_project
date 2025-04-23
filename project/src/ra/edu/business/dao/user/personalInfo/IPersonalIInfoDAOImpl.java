@@ -1,10 +1,8 @@
 package ra.edu.business.dao.user.personalInfo;
 
 import ra.edu.business.config.ConnectionDB;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Types;
+
+import java.sql.*;
 
 public class IPersonalIInfoDAOImpl implements IPersonalIInfoDAO {
     @Override
@@ -46,4 +44,5 @@ public class IPersonalIInfoDAOImpl implements IPersonalIInfoDAO {
             return false;
         }
     }
+
 }

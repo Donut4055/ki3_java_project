@@ -33,4 +33,19 @@ public class ApplicationServiceImpl implements IApplicationService {
     public boolean submitApplication(int candidateId, int positionId, String cvUrl) {
         return dao.submitApplication(candidateId, positionId, cvUrl);
     }
+
+    @Override
+    public int countSubmittedApplications(int candidateId) {
+        return dao.countSubmittedApplications(candidateId);
+    }
+
+    @Override
+    public boolean respondToInterview(int appId, boolean confirm) {
+        return dao.respondToInterview(appId, confirm);
+    }
+
+    @Override
+    public int countActivePositions() {
+        return dao.countActivePositions();
+    }
 }

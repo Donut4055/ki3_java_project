@@ -9,5 +9,6 @@ public interface ITechnologyService {
     boolean addTechnology(String technologyName);
     boolean updateTechnology(int id, String newName);
     boolean deleteTechnology(int id);
+    int countTechnologies();
 }
 

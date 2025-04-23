@@ -12,55 +12,72 @@ public class RegisterUI {
 
     public static void displayRegisterMenu() {
         System.out.println("========== ĐĂNG KÝ TÀI KHOẢN ỨNG VIÊN ==========");
-        String username = readNonEmptyString("Nhập tên đăng nhập: ");
-        if (!UserValidator.isValidUsername(username)) {
-            System.out.println(">>> Tên đăng nhập không hợp lệ (tối thiểu 4 ký tự).");
-            return;
-        }
 
-        String password = readNonEmptyString("Nhập mật khẩu: ");
-        if (!UserValidator.isValidPassword(password)) {
-            System.out.println(">>> Mật khẩu phải có ít nhất 6 ký tự.");
-            return;
-        }
+        String username;
+        do {
+            username = readNonEmptyString("Nhập tên đăng nhập: ");
+            if (!UserValidator.isValidUsername(username)) {
+                System.out.println(">>> Tên đăng nhập không hợp lệ (tối thiểu 4 ký tự).");
+            }
+        } while (!UserValidator.isValidUsername(username));
+
+        String password;
+        do {
+            password = readNonEmptyString("Nhập mật khẩu: ");
+            if (!UserValidator.isValidPassword(password)) {
+                System.out.println(">>> Mật khẩu phải có ít nhất 6 ký tự.");
+            }
+        } while (!UserValidator.isValidPassword(password));
 
         String name = readNonEmptyString("Nhập tên ứng viên: ");
 
-        String email = readNonEmptyString("Nhập email: ");
-        if (!Validator.isValidEmail(email)) {
-            System.out.println(">>> Email không đúng định dạng.");
-            return;
-        }
+        String email;
+        do {
+            email = readNonEmptyString("Nhập email: ");
+            if (!Validator.isValidEmail(email)) {
+                System.out.println(">>> Email không đúng định dạng.");
+            }
+        } while (!Validator.isValidEmail(email));
 
-        String phone = readNonEmptyString("Nhập số điện thoại: ");
-        if (!Validator.isValidPhone(phone)) {
-            System.out.println(">>> Số điện thoại không hợp lệ.");
-            return;
-        }
+        String phone;
+        do {
+            phone = readNonEmptyString("Nhập số điện thoại: ");
+            if (!Validator.isValidPhone(phone)) {
+                System.out.println(">>> Số điện thoại không hợp lệ.");
+            }
+        } while (!Validator.isValidPhone(phone));
 
-        String gender = readNonEmptyString("Nhập giới tính (Nam/Nữ): ");
-        if (!gender.equalsIgnoreCase("Nam") && !gender.equalsIgnoreCase("Nữ")) {
-            System.out.println(">>> Giới tính phải là 'Nam' hoặc 'Nữ'.");
-            return;
-        }
+        String gender;
+        do {
+            gender = readNonEmptyString("Nhập giới tính (Nam/Nữ): ");
+            if (!gender.equalsIgnoreCase("Nam") && !gender.equalsIgnoreCase("Nữ")) {
+                System.out.println(">>> Giới tính phải là 'Nam' hoặc 'Nữ'.");
+            }
+        } while (!gender.equalsIgnoreCase("Nam") && !gender.equalsIgnoreCase("Nữ"));
 
-        String dob = readNonEmptyString("Nhập ngày sinh (yyyy-MM-dd): ");
-        if (!Validator.isValidDate(dob)) {
-            System.out.println(">>> Ngày sinh không đúng định dạng yyyy-MM-dd.");
-            return;
-        }
+        String dob;
+        do {
+            dob = readNonEmptyString("Nhập ngày sinh (yyyy-MM-dd): ");
+            if (!Validator.isValidDate(dob)) {
+                System.out.println(">>> Ngày sinh không đúng định dạng yyyy-MM-dd.");
+            }
+        } while (!Validator.isValidDate(dob));
 
-        String description = readNonEmptyString("Nhập mô tả về ứng viên: ");
-        if (description.trim().isEmpty()) {
-            System.out.println(">>> Mô tả không được để trống.");
-            return;
-        }
+        String description;
+        do {
+            description = readNonEmptyString("Nhập mô tả về ứng viên: ");
+            if (description.trim().isEmpty()) {
+                System.out.println(">>> Mô tả không được để trống.");
+            }
+        } while (description.trim().isEmpty());
 
-        int experience = readInt("Nhập kinh nghiệm (số năm, >=0): ");
-        if (experience < 0) {
-            System.out.println(">>> Kinh nghiệm phải lớn hơn hoặc bằng 0.");
-            return;
-        }
+        int experience;
+        do {
+            experience = readInt("Nhập kinh nghiệm (số năm, >=0): ");
+            if (experience < 0) {
+                System.out.println(">>> Kinh nghiệm phải lớn hơn hoặc bằng 0.");
+            }
+        } while (experience < 0);
 
         boolean isRegistered = accountService.registerUser(
                 username, password, name, email, phone, gender, dob, description, experience

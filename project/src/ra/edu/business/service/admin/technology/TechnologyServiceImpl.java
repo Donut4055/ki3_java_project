@@ -32,5 +32,10 @@ public class TechnologyServiceImpl implements ITechnologyService {
     public boolean deleteTechnology(int id) {
         return technologyDAO.deleteTechnology(id);
     }
+
+    @Override
+    public int countTechnologies() {
+        return technologyDAO.countTechnologies();
+    }
 }
 

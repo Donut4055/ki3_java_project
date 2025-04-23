@@ -205,5 +205,18 @@ public class CandidateDAOImpl implements ICandidateDAO {
         return candidates;
     }
 
-
+    @Override
+    public int countCandidates() {
+        String sql = "{CALL sp_count_candidates()}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            ResultSet rs = cs.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("Lỗi đếm ứng viên: " + e.getMessage());
+        }
+        return 0;
+    }
 }

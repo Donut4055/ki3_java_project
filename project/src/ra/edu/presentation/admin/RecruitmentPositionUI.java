@@ -4,6 +4,8 @@ import ra.edu.business.model.RecruitmentPosition;
 import ra.edu.business.service.admin.recruitment.IRecruitmentPositionService;
 import ra.edu.business.service.admin.recruitment.RecruitmentPositionServiceImpl;
 import ra.edu.validate.JobPositionValidator;
+import ra.edu.utils.DataFormatter;
+
 import static ra.edu.utils.InputUtils.readInt;
 import static ra.edu.utils.InputUtils.readNonEmptyString;
 
@@ -12,9 +14,13 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.IntSupplier;
 
 public class RecruitmentPositionUI {
     private static final IRecruitmentPositionService service = new RecruitmentPositionServiceImpl();
+    private static final int PAGE_SIZE = 10;
 
     public static void showMenu() {
         while (true) {
@@ -26,18 +32,10 @@ public class RecruitmentPositionUI {
             System.out.println("0. Quay lại");
             int choice = readInt("Chọn: ");
             switch (choice) {
-                case 1:
-                    list();
-                    break;
-                case 2:
-                    add();
-                    break;
-                case 3:
-                    update();
-                    break;
-                case 4:
-                    delete();
-                    break;
+                case 1: list();   break;
+                case 2: add();    break;
+                case 3: update(); break;
+                case 4: delete(); break;
                 case 0:
                     System.out.println(">>> Quay lại menu chính.");
                     return;
@@ -48,23 +46,37 @@ public class RecruitmentPositionUI {
     }
 
     private static void list() {
-        int page;
-        do {
-            page = readInt("Trang (>=1): ");
-        } while (page < 1);
+        String[] headers = {
+                "ID",
+                "Name",
+                "Description",
+                "MinSalary",
+                "MaxSalary",
+                "MinExp",
+                "CreatedDate",
+                "ExpiredDate"
+        };
 
-        int size;
-        do {
-            size = readInt("Số bản ghi mỗi trang (>=1): ");
-        } while (size < 1);
+        BiFunction<Integer,Integer,List<RecruitmentPosition>> fetchPage = service::getPositions;
+        IntSupplier totalCount = () -> service.countPositions();
+        Function<RecruitmentPosition,String[]> mapper = rp -> new String[]{
+                String.valueOf(rp.getId()),
+                rp.getName(),
+                rp.getDescription(),
+                rp.getMinSalary().toPlainString(),
+                rp.getMaxSalary().toPlainString(),
+                String.valueOf(rp.getMinExperience()),
+                rp.getCreatedDate().toString(),
+                rp.getExpiredDate().toString()
+        };
 
-        List<RecruitmentPosition> list = service.getPositions(page, size);
-        System.out.println("---- DANH SÁCH ----");
-        for (RecruitmentPosition rp : list) {
-            System.out.printf("ID:%d | %s | Lương:%s-%s | Exp:%d năm | Hết hạn:%s%n",
-                    rp.getId(), rp.getName(), rp.getMinSalary(), rp.getMaxSalary(),
-                    rp.getMinExperience(), rp.getExpiredDate());
-        }
+        DataFormatter.printInteractiveTable(
+                headers,
+                fetchPage,
+                totalCount,
+                mapper,
+                PAGE_SIZE
+        );
     }
 
     private static void add() {
@@ -108,10 +120,20 @@ public class RecruitmentPositionUI {
             }
         } while (techIds.isEmpty());
 
-        RecruitmentPosition rp = new RecruitmentPosition(0, name, desc, min, max, exp,
-                Date.valueOf(created), Date.valueOf(expired));
+        RecruitmentPosition rp = new RecruitmentPosition(
+                0,
+                name,
+                desc,
+                min,
+                max,
+                exp,
+                Date.valueOf(created),
+                Date.valueOf(expired)
+        );
         int newId = service.addPosition(rp, techIds);
-        System.out.println(newId > 0 ? ">>> Thêm thành công! ID mới=" + newId : ">>> Lỗi khi thêm.");
+        System.out.println(newId > 0
+                ? ">>> Thêm thành công! ID mới = " + newId
+                : ">>> Lỗi khi thêm.");
     }
 
     private static void update() {
@@ -144,7 +166,7 @@ public class RecruitmentPositionUI {
 
         List<Integer> techIds;
         do {
-            String input = readNonEmptyString("IDs công nghệ mới (phân tách dấu phẩy, ít nhất 1): ");
+            String input = readNonEmptyString("IDs công nghệ mới (phân tách dấu phẩy): ");
             String[] parts = input.split(",");
             techIds = new ArrayList<>();
             for (String p : parts) {
@@ -157,15 +179,27 @@ public class RecruitmentPositionUI {
             }
         } while (techIds.isEmpty());
 
-        RecruitmentPosition rp = new RecruitmentPosition(id, name, desc, min, max, exp,
-                Date.valueOf(created), Date.valueOf(expired));
+        RecruitmentPosition rp = new RecruitmentPosition(
+                id,
+                name,
+                desc,
+                min,
+                max,
+                exp,
+                Date.valueOf(created),
+                Date.valueOf(expired)
+        );
         boolean success = service.updatePosition(rp, techIds);
-        System.out.println(success ? ">>> Cập nhật thành công!" : ">>> Lỗi khi cập nhật.");
+        System.out.println(success
+                ? ">>> Cập nhật thành công!"
+                : ">>> Lỗi khi cập nhật.");
     }
 
     private static void delete() {
         int id = readInt("ID cần xóa: ");
         boolean success = service.deletePosition(id);
-        System.out.println(success ? ">>> Xóa thành công!" : ">>> Lỗi khi xóa.");
+        System.out.println(success
+                ? ">>> Xóa thành công!"
+                : ">>> Lỗi khi xóa.");
     }
 }

@@ -10,4 +10,8 @@ public interface IApplicationDAO {
     List<RecruitmentPosition> getActivePositions(int page, int size);
     RecruitmentPosition getPositionDetails(int positionId);
     boolean submitApplication(int candidateId, int positionId, String cvUrl);
+    int countSubmittedApplications(int candidateId);
+    /** Ứng viên xác nhận/ từ chối phỏng vấn */
+    boolean respondToInterview(int appId, boolean confirm);
+    int countActivePositions();
 }

@@ -15,4 +15,5 @@ public class IPersonalIInfoServiceImpl implements IPersonalIInfoService {
     public boolean changePassword(int candidateId, String oldPassword, String newPassword) {
         return dao.changeCandidatePassword(candidateId, oldPassword, newPassword);
     }
+
 }

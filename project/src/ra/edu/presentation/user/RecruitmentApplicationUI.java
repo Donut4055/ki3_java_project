@@ -5,14 +5,20 @@ import ra.edu.business.model.RecruitmentPosition;
 import ra.edu.business.service.user.application.IApplicationService;
 import ra.edu.business.service.user.application.ApplicationServiceImpl;
 import ra.edu.MainApplication;
+import ra.edu.utils.DataFormatter;
+
 import static ra.edu.utils.InputUtils.readInt;
 import static ra.edu.utils.InputUtils.readNonEmptyString;
 
 import java.util.List;
-import java.util.Scanner;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.IntSupplier;
 
 public class RecruitmentApplicationUI {
     private static final IApplicationService service = new ApplicationServiceImpl();
+    private static final int PAGE_SIZE = 10;
+
     public static void showMenu() {
         while (true) {
             System.out.println("\n===== ỨNG TUYỂN VỊ TRÍ =====");
@@ -21,28 +27,45 @@ public class RecruitmentApplicationUI {
             System.out.println("0. Quay lại");
             int choice = readInt("Chọn: ");
             switch (choice) {
-                case 1:
-                    listActivePositions();
-                    break;
-                case 2:
-                    viewAndApply();
-                    break;
-                case 0:
-                    return;
-                default:
-                    System.out.println(">>> Lựa chọn không hợp lệ.");
+                case 1: listActivePositions(); break;
+                case 2: viewAndApply();        break;
+                case 0: return;
+                default: System.out.println(">>> Lựa chọn không hợp lệ.");
             }
         }
     }
 
     private static void listActivePositions() {
-        int page = readInt("Nhập trang (>=1): ");
-        int size = readInt("Số vị trí/trang (>=1): ");
-        List<RecruitmentPosition> list = service.getActivePositions(page, size);
-        System.out.println("---- VỊ TRÍ ĐANG HOẠT ĐỘNG ----");
-        list.forEach(rp -> System.out.printf(
-                "ID:%d | %s | Hạn nộp:%s%n",
-                rp.getId(), rp.getName(), rp.getExpiredDate()));
+        // BiFunction lấy trang
+        BiFunction<Integer,Integer,List<RecruitmentPosition>> fetchPage =
+                (page, size) -> service.getActivePositions(page, size);
+        // IntSupplier đếm tổng vị trí active
+        IntSupplier totalCount = () -> service.countActivePositions();
+
+        String[] headers = {
+                "ID", "Tên", "Mô tả",
+                "LươngMin", "LươngMax",
+                "KinhNghiemMin",
+                "NgayTao", "NgayHetHan"
+        };
+        Function<RecruitmentPosition,String[]> mapper = rp -> new String[]{
+                String.valueOf(rp.getId()),
+                rp.getName(),
+                rp.getDescription(),
+                rp.getMinSalary().toPlainString(),
+                rp.getMaxSalary().toPlainString(),
+                String.valueOf(rp.getMinExperience()),
+                rp.getCreatedDate().toString(),
+                rp.getExpiredDate().toString()
+        };
+
+        DataFormatter.printInteractiveTable(
+                headers,
+                fetchPage,
+                totalCount,
+                mapper,
+                PAGE_SIZE
+        );
     }
 
     private static void viewAndApply() {
@@ -52,25 +75,49 @@ public class RecruitmentApplicationUI {
             System.out.println(">>> Không tìm thấy vị trí.");
             return;
         }
-        System.out.println(rp);
+
+        // In chi tiết vị trí theo bảng Field–Value
+        String[] hdr = { "Thuộc tính", "Giá trị" };
+        List<String[]> rows = List.of(
+                new String[]{ "ID",             String.valueOf(rp.getId()) },
+                new String[]{ "Tên",            rp.getName() },
+                new String[]{ "Mô tả",          rp.getDescription() },
+                new String[]{ "Lương tối thiểu", rp.getMinSalary().toPlainString() },
+                new String[]{ "Lương tối đa",   rp.getMaxSalary().toPlainString() },
+                new String[]{ "Kinh nghiệm tối thiểu", String.valueOf(rp.getMinExperience()) },
+                new String[]{ "Ngày tạo",       rp.getCreatedDate().toString() },
+                new String[]{ "Ngày hết hạn",    rp.getExpiredDate().toString() }
+        );
+        DataFormatter.printTable(hdr, rows, row -> row);
+
         int cid = MainApplication.currentUser.getId();
-        List<Application> prev = service.getSubmittedApplications(cid, 1, Integer.MAX_VALUE);
-        boolean already = prev.stream()
-                .anyMatch(a -> a.getRecruitmentPositionId() == pid && !"rejected".equalsIgnoreCase(a.getProgress()));
+        // Kiểm tra đã apply chưa (ngoại trừ bị reject)
+        boolean already = service.getSubmittedApplications(cid, 1, Integer.MAX_VALUE).stream()
+                .anyMatch(a -> a.getRecruitmentPositionId() == pid
+                        && !"rejected".equalsIgnoreCase(a.getProgress()));
         if (already) {
             System.out.println(">>> Bạn đã ứng tuyển vị trí này và chưa bị từ chối.");
             return;
         }
-        System.out.print("Bạn muốn ứng tuyển vị trí này? (y/n): ");
-        String confirm = readInt("Bạn chọn (1-Yes, 2-No): ") == 1 ? "y" : "n";
-        if ("y".equalsIgnoreCase(confirm)) {
-            String cv = readNonEmptyString("Nhập URL CV: ");
-            boolean ok = service.submitApplication(cid, pid, cv);
-            System.out.println(ok ? ">>> Ứng tuyển thành công." : ">>> Lỗi khi ứng tuyển.");
+
+        String confirm;
+        do {
+            confirm = readNonEmptyString("Bạn muốn ứng tuyển vị trí này? (y/n): ");
+        } while (!confirm.equalsIgnoreCase("y") && !confirm.equalsIgnoreCase("n"));
+
+        if (confirm.equalsIgnoreCase("y")) {
+            String cvUrl;
+            do {
+                cvUrl = readNonEmptyString("Nhập URL CV: ");
+            } while (cvUrl.trim().isEmpty());
+
+            boolean ok = service.submitApplication(cid, pid, cvUrl);
+            System.out.println(ok
+                    ? ">>> Ứng tuyển thành công."
+                    : ">>> Lỗi khi ứng tuyển."
+            );
         } else {
-            System.out.println(">>> Hủy ứng tuyển.");
+            System.out.println(">>> Đã hủy ứng tuyển.");
         }
     }
 }
-
-
