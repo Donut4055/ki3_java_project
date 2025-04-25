@@ -81,6 +81,73 @@ CREATE TABLE application (
                              FOREIGN KEY (recruitmentPositionId) REFERENCES recruitment_position(id)
 );
 
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_count_candidates$$
+CREATE PROCEDURE sp_count_candidates()
+BEGIN
+    SELECT COUNT(*) AS total
+    FROM candidate;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_count_recruitment_positions$$
+CREATE PROCEDURE sp_count_recruitment_positions()
+BEGIN
+    -- Đếm tất cả vị trí mà tên không kết thúc bằng "_deleted"
+    SELECT COUNT(*) AS total
+    FROM recruitment_position
+    WHERE name NOT LIKE '%_deleted';
+END $$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_count_technologies$$
+CREATE PROCEDURE sp_count_technologies()
+BEGIN
+    SELECT COUNT(*) AS total
+    FROM technology
+    WHERE name NOT LIKE '%\_deleted';
+END $$
+DELIMITER ;
+
+DELIMITER $$
+
+-- 1. Đếm đơn đã nộp (destroyAt IS NULL)
+DROP PROCEDURE IF EXISTS sp_count_submitted_applications$$
+CREATE PROCEDURE sp_count_submitted_applications(
+    IN p_candidateId INT
+)
+BEGIN
+    SELECT COUNT(*) AS total
+    FROM application
+    WHERE candidateId = p_candidateId
+      AND destroyAt IS NULL;
+END $$
+
+-- 2. Ứng viên phản hồi phỏng vấn
+DROP PROCEDURE IF EXISTS sp_candidate_respond_interview$$
+CREATE PROCEDURE sp_candidate_respond_interview(
+    IN p_appId INT,
+    IN p_response VARCHAR(20)
+)
+BEGIN
+    UPDATE application
+    SET interviewRequestResult = p_response
+    WHERE id = p_appId;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_count_active_positions$$
+CREATE PROCEDURE sp_count_active_positions()
+BEGIN
+    SELECT COUNT(*) AS total
+    FROM recruitment_position
+    WHERE expiredDate >= CURDATE()
+      AND name NOT LIKE '%\_deleted';
+END $$
+DELIMITER ;
 
 DELIMITER $$
 CREATE PROCEDURE sp_login_account(
