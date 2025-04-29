@@ -18,19 +18,15 @@ public class MainApplication {
     public static void main(String[] args) {
         readLoginFile();
 
-        // Nếu đã có user lưu trong file
         if (currentUser != null) {
-            // Kiểm tra trạng thái locked
             if ("locked".equalsIgnoreCase(currentUser.getStatus())) {
                 System.out.println(">>> Tài khoản của bạn hiện đang bị khoá. Vui lòng liên hệ Admin.");
                 clearLoginFile();
                 currentUser = null;
-                // Quay về màn hình đăng nhập
                 MainUI.DisplayMenu();
                 return;
             }
 
-            // Nếu không bị khoá thì định hướng theo role
             System.out.println("Chào mừng trở lại, "
                     + currentUser.getUsername()
                     + " (" + currentUser.getRole() + ")");
@@ -40,7 +36,6 @@ public class MainApplication {
                 UserMenu.showMenu();
             }
         } else {
-            // Chưa có ai đăng nhập, hiển thị menu login/register
             MainUI.DisplayMenu();
         }
     }
