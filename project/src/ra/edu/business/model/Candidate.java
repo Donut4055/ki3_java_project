@@ -28,7 +28,6 @@ public class Candidate {
         this.dob = dob;
     }
 
-    // Getters & Setters
     public int getId() {
         return id;
     }

@@ -13,4 +13,5 @@ public interface IAdminApplicationDAO {
     Application viewApplication(int appId);
     boolean setInterview(int appId, String link, Timestamp time);
     boolean updateResult(int appId, String result, String note);
+    int countApplications();
 }

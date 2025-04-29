@@ -28,10 +28,18 @@ public class TechnologyUI {
             System.out.println("0. Quay về menu chính");
             int choice = readInt("Chọn: ");
             switch (choice) {
-                case 1: viewTechnologies();   break;
-                case 2: addTechnology();      break;
-                case 3: updateTechnology();   break;
-                case 4: deleteTechnology();   break;
+                case 1:
+                    viewTechnologies();
+                    break;
+                case 2:
+                    addTechnology();
+                    break;
+                case 3:
+                    updateTechnology();
+                    break;
+                case 4:
+                    deleteTechnology();
+                    break;
                 case 0:
                     System.out.println(">>> Quay về menu chính.");
                     return;
@@ -42,36 +50,31 @@ public class TechnologyUI {
     }
 
     private static void viewTechnologies() {
-        String[] headers = { "ID", "Name" };
+        try {
+            String[] headers = { "ID", "Tên" };
+            BiFunction<Integer, Integer, List<Technology>> fetchPage =
+                    (page, size) -> technologyService.getTechnologies(page, size);
+            IntSupplier totalCount = technologyService::countTechnologies;
+            Function<Technology, String[]> mapper = t -> new String[]{
+                    String.valueOf(t.getId()), t.getName()
+            };
 
-        BiFunction<Integer,Integer,List<Technology>> fetchPage =
-                (page, size) -> technologyService.getTechnologies(page, size);
-        IntSupplier totalCount = () -> technologyService.countTechnologies();
-        Function<Technology,String[]> mapper = t -> new String[]{
-                String.valueOf(t.getId()),
-                t.getName()
-        };
-
-        DataFormatter.printInteractiveTable(
-                headers,
-                fetchPage,
-                totalCount,
-                mapper,
-                PAGE_SIZE
-        );
+            DataFormatter.printInteractiveTable(
+                    headers, fetchPage, totalCount, mapper, PAGE_SIZE
+            );
+        } catch (Exception e) {
+            System.out.println(">>> Lỗi khi hiển thị danh sách: " + e.getMessage());
+        }
     }
 
     private static void addTechnology() {
-        String technologyName;
-        do {
-            technologyName = readNonEmptyString("Nhập tên công nghệ mới: ");
-            if (!TechnologyValidator.isValidTechnologyName(technologyName)) {
-                System.out.println(">>> Tên không hợp lệ hoặc đã tồn tại.");
-            }
-        } while (!TechnologyValidator.isValidTechnologyName(technologyName));
-
         try {
-            if (technologyService.addTechnology(technologyName)) {
+            String name;
+            do {
+                name = readNonEmptyString("Nhập tên công nghệ mới: ");
+            } while (!TechnologyValidator.isValidTechnologyName(name));
+
+            if (technologyService.addTechnology(name)) {
                 System.out.println(">>> Công nghệ đã được thêm thành công.");
             } else {
                 System.out.println(">>> Lỗi khi thêm công nghệ.");
@@ -82,20 +85,14 @@ public class TechnologyUI {
     }
 
     private static void updateTechnology() {
-        int id = readInt("Nhập ID công nghệ muốn sửa: ");
-
-        String newName;
-        do {
-            newName = readNonEmptyString("Nhập tên công nghệ mới: ");
-            if (!TechnologyValidator.isValidTechnologyName(newName) ||
-                    TechnologyValidator.isDuplicateTechnologyName(newName)) {
-                System.out.println(">>> Tên không hợp lệ hoặc đã tồn tại.");
-            }
-        } while (!TechnologyValidator.isValidTechnologyName(newName) ||
-                TechnologyValidator.isDuplicateTechnologyName(newName));
-
         try {
-            if (technologyService.updateTechnology(id, newName)) {
+            int id = readInt("Nhập ID công nghệ muốn sửa: ");
+            String name;
+            do {
+                name = readNonEmptyString("Nhập tên công nghệ mới: ");
+            } while (!TechnologyValidator.isValidTechnologyName(name));
+
+            if (technologyService.updateTechnology(id, name)) {
                 System.out.println(">>> Công nghệ đã được cập nhật thành công.");
             } else {
                 System.out.println(">>> Lỗi khi cập nhật công nghệ.");
@@ -106,8 +103,8 @@ public class TechnologyUI {
     }
 
     private static void deleteTechnology() {
-        int id = readInt("Nhập ID công nghệ muốn xóa: ");
         try {
+            int id = readInt("Nhập ID công nghệ muốn xóa: ");
             if (technologyService.deleteTechnology(id)) {
                 System.out.println(">>> Công nghệ đã được xóa.");
             } else {

@@ -23,4 +23,10 @@ public class AccountServiceImpl {
     public Account login(String username, String password, String expectedRole) {
         return accountDAO.login(username, password, expectedRole);
     }
+    public boolean isUsernameTaken(String username) {
+        return accountDAO.isUsernameTaken(username);
+    }
+    public boolean isEmailTaken(String email) {
+        return accountDAO.isEmailTaken(email);
+    }
 }

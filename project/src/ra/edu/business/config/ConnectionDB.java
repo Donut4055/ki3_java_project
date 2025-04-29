@@ -20,21 +20,15 @@ public class ConnectionDB {
         }
     }
 
-    public static void closeConnection(Connection conn, PreparedStatement ps, ResultSet rs) {
-        try {
-            if (rs != null) rs.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (ps != null) ps.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (conn != null) conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public static void close(AutoCloseable... resources) {
+        for (AutoCloseable res : resources) {
+            if (res != null) {
+                try {
+                    res.close();
+                } catch (Exception e) {
+                    System.err.println("Lỗi đóng resource: " + e.getMessage());
+                }
+            }
         }
     }
 }

@@ -1,7 +1,8 @@
 package ra.edu.business.dao.admin.candidate;
 
-import ra.edu.business.model.Candidate;
 import ra.edu.business.config.ConnectionDB;
+import ra.edu.business.model.Candidate;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,12 +12,18 @@ public class CandidateDAOImpl implements ICandidateDAO {
     @Override
     public List<Candidate> getCandidates(int pageNumber, int pageSize) {
         List<Candidate> candidates = new ArrayList<>();
-        String sql = "{CALL get_candidates(?, ?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong getCandidates.");
+            return candidates;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL get_candidates(?, ?)}");
             cs.setInt(1, (pageNumber - 1) * pageSize);
             cs.setInt(2, pageSize);
-            ResultSet rs = cs.executeQuery();
+            rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
                         rs.getInt("id"),
@@ -31,49 +38,79 @@ public class CandidateDAOImpl implements ICandidateDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Lỗi getCandidates: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ getCandidates: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return candidates;
     }
 
     @Override
     public boolean lockUnlockAccount(int candidateId, String status) {
-        String sql = "{CALL lock_unlock_account(?, ?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong lockUnlockAccount.");
+            return false;
+        }
+        CallableStatement cs = null;
+        try {
+            cs = conn.prepareCall("{CALL lock_unlock_account(?, ?)}");
             cs.setInt(1, candidateId);
             cs.setString(2, status);
             cs.executeUpdate();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Lỗi lockUnlockAccount: " + e.getMessage());
             return false;
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ lockUnlockAccount: " + e.getMessage());
+            return false;
+        } finally {
+            ConnectionDB.close(cs, conn);
         }
     }
 
     @Override
     public String resetPassword(int candidateId) {
-        String sql = "{CALL reset_password(?, ?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong resetPassword.");
+            return null;
+        }
+        CallableStatement cs = null;
+        try {
+            cs = conn.prepareCall("{CALL reset_password(?, ?)}");
             cs.setInt(1, candidateId);
             cs.registerOutParameter(2, Types.VARCHAR);
             cs.executeUpdate();
             return cs.getString(2);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Lỗi resetPassword: " + e.getMessage());
             return null;
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ resetPassword: " + e.getMessage());
+            return null;
+        } finally {
+            ConnectionDB.close(cs, conn);
         }
     }
 
     @Override
     public List<Candidate> searchCandidateByName(String name) {
         List<Candidate> candidates = new ArrayList<>();
-        String sql = "{CALL search_candidate_by_name(?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong searchCandidateByName.");
+            return candidates;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL search_candidate_by_name(?)}");
             cs.setString(1, name);
-            ResultSet rs = cs.executeQuery();
+            rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
                         rs.getInt("id"),
@@ -88,7 +125,11 @@ public class CandidateDAOImpl implements ICandidateDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Lỗi searchCandidateByName: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ searchCandidateByName: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return candidates;
     }
@@ -96,11 +137,17 @@ public class CandidateDAOImpl implements ICandidateDAO {
     @Override
     public List<Candidate> filterCandidatesByExperience(int experience) {
         List<Candidate> candidates = new ArrayList<>();
-        String sql = "{CALL filter_candidates_by_experience(?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong filterCandidatesByExperience.");
+            return candidates;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL filter_candidates_by_experience(?)}");
             cs.setInt(1, experience);
-            ResultSet rs = cs.executeQuery();
+            rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
                         rs.getInt("id"),
@@ -115,7 +162,11 @@ public class CandidateDAOImpl implements ICandidateDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Lỗi filterCandidatesByExperience: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ filterCandidatesByExperience: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return candidates;
     }
@@ -123,11 +174,17 @@ public class CandidateDAOImpl implements ICandidateDAO {
     @Override
     public List<Candidate> filterCandidatesByAge(int age) {
         List<Candidate> candidates = new ArrayList<>();
-        String sql = "{CALL filter_candidates_by_age(?)}";  // Gọi stored procedure
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong filterCandidatesByAge.");
+            return candidates;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL filter_candidates_by_age(?)}");
             cs.setInt(1, age);
-            ResultSet rs = cs.executeQuery();
+            rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
                         rs.getInt("id"),
@@ -142,20 +199,29 @@ public class CandidateDAOImpl implements ICandidateDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi lọc ứng viên theo tuổi: " + e.getMessage());
+            System.err.println("Lỗi filterCandidatesByAge: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ filterCandidatesByAge: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return candidates;
     }
-
 
     @Override
     public List<Candidate> filterCandidatesByGender(String gender) {
         List<Candidate> candidates = new ArrayList<>();
-        String sql = "{CALL filter_candidates_by_gender(?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-            cs.setString(1, gender);  // Fix: Use setString() with parameter index 1
-            ResultSet rs = cs.executeQuery();
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong filterCandidatesByGender.");
+            return candidates;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL filter_candidates_by_gender(?)}");
+            cs.setString(1, gender);
+            rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
                         rs.getInt("id"),
@@ -170,22 +236,29 @@ public class CandidateDAOImpl implements ICandidateDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Lỗi filterCandidatesByGender: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ filterCandidatesByGender: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return candidates;
     }
 
-
     @Override
     public List<Candidate> filterCandidatesByTechnology(int technologyId) {
         List<Candidate> candidates = new ArrayList<>();
-        String sql = "{CALL filter_candidates_by_technology(?)}";  // Gọi stored procedure lọc theo công nghệ
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong filterCandidatesByTechnology.");
+            return candidates;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL filter_candidates_by_technology(?)}");
             cs.setInt(1, technologyId);
-            ResultSet rs = cs.executeQuery();
-
+            rs = cs.executeQuery();
             while (rs.next()) {
                 candidates.add(new Candidate(
                         rs.getInt("id"),
@@ -200,22 +273,36 @@ public class CandidateDAOImpl implements ICandidateDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi lọc ứng viên theo công nghệ: " + e.getMessage());
+            System.err.println("Lỗi filterCandidatesByTechnology: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ filterCandidatesByTechnology: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return candidates;
     }
 
     @Override
     public int countCandidates() {
-        String sql = "{CALL sp_count_candidates()}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-            ResultSet rs = cs.executeQuery();
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong countCandidates.");
+            return 0;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL sp_count_candidates()}");
+            rs = cs.executeQuery();
             if (rs.next()) {
                 return rs.getInt("total");
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi đếm ứng viên: " + e.getMessage());
+            System.err.println("Lỗi countCandidates: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ countCandidates: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return 0;
     }

@@ -9,8 +9,6 @@ import java.util.function.IntSupplier;
 public class DataFormatter {
 
     /**
-     * In một bảng tĩnh (không phân trang) với header và list dữ liệu.
-     *
      * @param headers Tiêu đề các cột
      * @param rows    Danh sách bản ghi
      * @param mapper  Chuyển mỗi bản ghi T thành mảng String tương ứng với từng cột
@@ -70,7 +68,6 @@ public class DataFormatter {
     }
 
     /**
-     * In một bảng với phân trang và tương tác:
      *  - [C] Choose: nhập số trang
      *  - [N] Next: trang tiếp
      *  - [E] Exit: thoát

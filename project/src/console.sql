@@ -80,6 +80,30 @@ CREATE TABLE application (
                              FOREIGN KEY (candidateId) REFERENCES candidate(id),
                              FOREIGN KEY (recruitmentPositionId) REFERENCES recruitment_position(id)
 );
+DELIMITER $$
+DROP PROCEDURE IF EXISTS sp_get_candidate_profile$$
+CREATE PROCEDURE sp_get_candidate_profile(
+    IN p_candidateId INT
+)
+BEGIN
+    SELECT id, name, email, phone, experience, gender, status, description, dob
+    FROM candidate
+    WHERE id = p_candidateId;
+END $$
+DELIMITER ;
+DELIMITER $$
+
+CREATE PROCEDURE sp_count_applications()
+BEGIN
+    SELECT
+        COUNT(*) AS total
+    FROM
+        application
+    WHERE
+        destroyAt IS NULL;
+END $$
+
+DELIMITER ;
 
 DELIMITER $$
 DROP PROCEDURE IF EXISTS sp_count_candidates$$
@@ -172,7 +196,7 @@ END $$
 DELIMITER ;
 
 
-
+DELIMITER $$
 CREATE PROCEDURE register_user(
     IN p_username VARCHAR(50),
     IN p_password VARCHAR(255),
@@ -194,7 +218,7 @@ BEGIN
     INSERT INTO _account (username, password, role, candidateId)
     VALUES (p_username, p_password, 'USER', p_new_candidate_id);
 
-END $$
+END;
 
 DELIMITER ;
 

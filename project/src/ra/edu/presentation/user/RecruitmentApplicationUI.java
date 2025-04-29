@@ -36,10 +36,8 @@ public class RecruitmentApplicationUI {
     }
 
     private static void listActivePositions() {
-        // BiFunction lấy trang
         BiFunction<Integer,Integer,List<RecruitmentPosition>> fetchPage =
                 (page, size) -> service.getActivePositions(page, size);
-        // IntSupplier đếm tổng vị trí active
         IntSupplier totalCount = () -> service.countActivePositions();
 
         String[] headers = {
@@ -76,7 +74,6 @@ public class RecruitmentApplicationUI {
             return;
         }
 
-        // In chi tiết vị trí theo bảng Field–Value
         String[] hdr = { "Thuộc tính", "Giá trị" };
         List<String[]> rows = List.of(
                 new String[]{ "ID",             String.valueOf(rp.getId()) },
@@ -91,7 +88,6 @@ public class RecruitmentApplicationUI {
         DataFormatter.printTable(hdr, rows, row -> row);
 
         int cid = MainApplication.currentUser.getId();
-        // Kiểm tra đã apply chưa (ngoại trừ bị reject)
         boolean already = service.getSubmittedApplications(cid, 1, Integer.MAX_VALUE).stream()
                 .anyMatch(a -> a.getRecruitmentPositionId() == pid
                         && !"rejected".equalsIgnoreCase(a.getProgress()));

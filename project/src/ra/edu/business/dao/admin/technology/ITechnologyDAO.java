@@ -9,8 +9,6 @@ public interface ITechnologyDAO {
     boolean updateTechnology(int id, String newName);
     boolean deleteTechnology(int id);
 
-    static boolean isTechnologyNameExist(String technologyName) {
-        return false;
-    }
+    boolean isTechnologyNameExist(String technologyName);
     int countTechnologies();
 }

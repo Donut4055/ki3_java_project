@@ -1,21 +1,29 @@
 package ra.edu.business.dao.admin.recruitment;
-import ra.edu.business.model.RecruitmentPosition;
+
 import ra.edu.business.config.ConnectionDB;
+import ra.edu.business.model.RecruitmentPosition;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 public class RecruitmentPositionDAOImpl implements IRecruitmentPositionDAO {
 
     @Override
     public List<RecruitmentPosition> getPositions(int page, int size) {
         List<RecruitmentPosition> list = new ArrayList<>();
-        String sql = "{CALL get_recruitment_positions(?, ?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong getPositions.");
+            return list;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL get_recruitment_positions(?, ?)}");
             cs.setInt(1, (page - 1) * size);
             cs.setInt(2, size);
-            ResultSet rs = cs.executeQuery();
+            rs = cs.executeQuery();
             while (rs.next()) {
                 list.add(new RecruitmentPosition(
                         rs.getInt("id"),
@@ -29,92 +37,145 @@ public class RecruitmentPositionDAOImpl implements IRecruitmentPositionDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi khi lấy vị trí: " + e.getMessage());
+            System.err.println("Lỗi getPositions: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ getPositions: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return list;
     }
 
     @Override
     public int addPosition(RecruitmentPosition rp, List<Integer> techIds) {
-        String sql = "{CALL add_recruitment_position(?, ?, ?, ?, ?, ?, ?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong addPosition.");
+            return -1;
+        }
+        CallableStatement cs = null;
+        try {
+            cs = conn.prepareCall("{CALL add_recruitment_position(?, ?, ?, ?, ?, ?, ?)}");
             cs.setString(1, rp.getName());
             cs.setString(2, rp.getDescription());
             cs.setBigDecimal(3, rp.getMinSalary());
             cs.setBigDecimal(4, rp.getMaxSalary());
             cs.setInt(5, rp.getMinExperience());
-            cs.setDate(6, new java.sql.Date(rp.getExpiredDate().getTime()));
+            cs.setDate(6, new Date(rp.getExpiredDate().getTime()));
             cs.registerOutParameter(7, Types.INTEGER);
             cs.executeUpdate();
             int newId = cs.getInt(7);
-            // link technologies
+
+            // Liên kết công nghệ
             try (CallableStatement link = conn.prepareCall("{CALL link_position_technology(?, ?)}")) {
                 for (Integer techId : techIds) {
                     link.setInt(1, newId);
                     link.setInt(2, techId);
                     link.executeUpdate();
                 }
+            } catch (SQLException e) {
+                System.err.println("Lỗi link công nghệ trong addPosition: " + e.getMessage());
             }
+
             return newId;
         } catch (SQLException e) {
-            System.err.println("Lỗi khi thêm vị trí: " + e.getMessage());
+            System.err.println("Lỗi addPosition: " + e.getMessage());
             return -1;
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ addPosition: " + e.getMessage());
+            return -1;
+        } finally {
+            ConnectionDB.close(cs, conn);
         }
     }
 
     @Override
     public boolean updatePosition(RecruitmentPosition rp, List<Integer> techIds) {
-        String sql = "{CALL update_recruitment_position(?, ?, ?, ?, ?, ?, ?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong updatePosition.");
+            return false;
+        }
+        CallableStatement cs = null;
+        try {
+            cs = conn.prepareCall("{CALL update_recruitment_position(?, ?, ?, ?, ?, ?, ?)}");
             cs.setInt(1, rp.getId());
             cs.setString(2, rp.getName());
             cs.setString(3, rp.getDescription());
             cs.setBigDecimal(4, rp.getMinSalary());
             cs.setBigDecimal(5, rp.getMaxSalary());
             cs.setInt(6, rp.getMinExperience());
-            cs.setDate(7, new java.sql.Date(rp.getExpiredDate().getTime()));
+            cs.setDate(7, new Date(rp.getExpiredDate().getTime()));
             cs.executeUpdate();
-            // link new techs
+
+            // Liên kết lại công nghệ
             try (CallableStatement link = conn.prepareCall("{CALL link_position_technology(?, ?)}")) {
                 for (Integer techId : techIds) {
                     link.setInt(1, rp.getId());
                     link.setInt(2, techId);
                     link.executeUpdate();
                 }
+            } catch (SQLException e) {
+                System.err.println("Lỗi link công nghệ trong updatePosition: " + e.getMessage());
             }
+
             return true;
         } catch (SQLException e) {
-            System.err.println("Lỗi khi cập nhật vị trí: " + e.getMessage());
+            System.err.println("Lỗi updatePosition: " + e.getMessage());
             return false;
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ updatePosition: " + e.getMessage());
+            return false;
+        } finally {
+            ConnectionDB.close(cs, conn);
         }
     }
 
     @Override
     public boolean deletePosition(int id) {
-        String sql = "{CALL delete_recruitment_position(?)}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong deletePosition.");
+            return false;
+        }
+        CallableStatement cs = null;
+        try {
+            cs = conn.prepareCall("{CALL delete_recruitment_position(?)}");
             cs.setInt(1, id);
             cs.executeUpdate();
             return true;
         } catch (SQLException e) {
-            System.err.println("Lỗi khi xóa vị trí: " + e.getMessage());
+            System.err.println("Lỗi deletePosition: " + e.getMessage());
             return false;
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ deletePosition: " + e.getMessage());
+            return false;
+        } finally {
+            ConnectionDB.close(cs, conn);
         }
     }
+
     @Override
     public int countPositions() {
-        String sql = "{CALL sp_count_recruitment_positions()}";
-        try (Connection conn = ConnectionDB.getConnection();
-             CallableStatement cs = conn.prepareCall(sql)) {
-            ResultSet rs = cs.executeQuery();
+        Connection conn = ConnectionDB.getConnection();
+        if (conn == null) {
+            System.err.println(">>> Không thể kết nối CSDL trong countPositions.");
+            return 0;
+        }
+        CallableStatement cs = null;
+        ResultSet rs = null;
+        try {
+            cs = conn.prepareCall("{CALL sp_count_recruitment_positions()}");
+            rs = cs.executeQuery();
             if (rs.next()) {
                 return rs.getInt("total");
             }
         } catch (SQLException e) {
-            System.err.println("Lỗi đếm vị trí tuyển dụng: " + e.getMessage());
+            System.err.println("Lỗi countPositions: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Ngoại lệ bất ngờ countPositions: " + e.getMessage());
+        } finally {
+            ConnectionDB.close(rs, cs, conn);
         }
         return 0;
     }

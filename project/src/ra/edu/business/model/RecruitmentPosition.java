@@ -27,7 +27,6 @@ public class RecruitmentPosition {
         this.expiredDate = expiredDate;
     }
 
-    // Getters & Setters
     public int getId() {
         return id;
     }

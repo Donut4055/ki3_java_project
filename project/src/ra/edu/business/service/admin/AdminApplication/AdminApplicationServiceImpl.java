@@ -43,4 +43,9 @@ public class AdminApplicationServiceImpl implements IAdminApplicationService {
     public boolean updateResult(int id, String result, String note) {
         return dao.updateResult(id, result, note);
     }
+
+    @Override
+    public int countApplications() {
+        return dao.countApplications();
+    }
 }

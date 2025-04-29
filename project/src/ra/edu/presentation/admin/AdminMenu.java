@@ -11,7 +11,7 @@ public class AdminMenu {
             System.out.println("1. Quản lý công nghệ");
             System.out.println("2. Quản lý ứng viên");
             System.out.println("3. Quản lý vị trí tuyển dụng");
-            System.out.println("4. Quản lý đơn ứng tuyển");  // ← thêm dòng này
+            System.out.println("4. Quản lý đơn ứng tuyển");
             System.out.println("0. Đăng xuất");
 
             int choice = readInt("Chọn: ");

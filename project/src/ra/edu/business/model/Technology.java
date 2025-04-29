@@ -12,7 +12,6 @@ public class Technology {
         this.name = name;
     }
 
-    // Getters & Setters
     public int getId() {
         return id;
     }

@@ -4,6 +4,8 @@ import ra.edu.business.model.Account;
 import ra.edu.presentation.MainUI;
 import ra.edu.presentation.admin.AdminMenu;
 import ra.edu.presentation.user.UserMenu;
+import static ra.edu.presentation.LoginUI.clearLoginFile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,8 +17,22 @@ public class MainApplication {
 
     public static void main(String[] args) {
         readLoginFile();
+
+        // Nếu đã có user lưu trong file
         if (currentUser != null) {
-            System.out.println("Chào mừng trở lại, " + currentUser.getUsername()
+            // Kiểm tra trạng thái locked
+            if ("locked".equalsIgnoreCase(currentUser.getStatus())) {
+                System.out.println(">>> Tài khoản của bạn hiện đang bị khoá. Vui lòng liên hệ Admin.");
+                clearLoginFile();
+                currentUser = null;
+                // Quay về màn hình đăng nhập
+                MainUI.DisplayMenu();
+                return;
+            }
+
+            // Nếu không bị khoá thì định hướng theo role
+            System.out.println("Chào mừng trở lại, "
+                    + currentUser.getUsername()
                     + " (" + currentUser.getRole() + ")");
             if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
                 AdminMenu.showMenu();
@@ -24,6 +40,7 @@ public class MainApplication {
                 UserMenu.showMenu();
             }
         } else {
+            // Chưa có ai đăng nhập, hiển thị menu login/register
             MainUI.DisplayMenu();
         }
     }
@@ -45,9 +62,9 @@ public class MainApplication {
                 String key = kv[0].trim(), value = kv[1].trim();
                 switch (key) {
                     case "ID":       id = Integer.parseInt(value); break;
-                    case "Username": username = value; break;
-                    case "Role":     role = value; break;
-                    case "Status":   status = value; break;
+                    case "Username": username = value;             break;
+                    case "Role":     role = value;                 break;
+                    case "Status":   status = value;               break;
                 }
             }
             if (id >= 0 && username != null && role != null && status != null) {
@@ -57,5 +74,4 @@ public class MainApplication {
             System.err.println("Lỗi khi đọc file đăng nhập: " + e.getMessage());
         }
     }
-
-};
+}

@@ -1,9 +1,10 @@
 package ra.edu.validate;
 
 import ra.edu.business.dao.admin.technology.ITechnologyDAO;
+import ra.edu.business.dao.admin.technology.TechnologyDAOImpl;
 
 public class TechnologyValidator {
-
+    private static final ITechnologyDAO dao = new TechnologyDAOImpl();
     public static boolean isValidTechnologyName(String technologyName) {
         if (isNotEmpty(technologyName) && !isDuplicateTechnologyName(technologyName)) {
             return true;
@@ -22,6 +23,6 @@ public class TechnologyValidator {
     }
 
     public static boolean isDuplicateTechnologyName(String technologyName) {
-        return ITechnologyDAO.isTechnologyNameExist(technologyName);
+        return dao.isTechnologyNameExist(technologyName);
     }
 }
