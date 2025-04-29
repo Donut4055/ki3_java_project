@@ -7,6 +7,8 @@ import ra.edu.utils.DataFormatter;
 import static ra.edu.utils.InputUtils.readInt;
 import static ra.edu.utils.InputUtils.readNonEmptyString;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -153,7 +155,7 @@ public class CandidateUI {
                     c -> new String[]{
                             String.valueOf(c.getId()),
                             c.getName(),
-                            // Tuổi có thể tính thêm nếu cần
+                            String.valueOf(Period.between(c.getDob().toLocalDate(), LocalDate.now()).getYears())
                     }
             );
         } catch (Exception e) {

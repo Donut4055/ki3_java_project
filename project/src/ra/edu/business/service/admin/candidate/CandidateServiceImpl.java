@@ -15,11 +15,6 @@ public class CandidateServiceImpl implements ICandidateService {
     }
 
     @Override
-    public boolean lockUnlockAccount(int candidateId, String status) {
-        return candidateDAO.lockUnlockAccount(candidateId, status);
-    }
-
-    @Override
     public String resetPassword(int candidateId) {
         return candidateDAO.resetPassword(candidateId);
     }
@@ -52,5 +47,14 @@ public class CandidateServiceImpl implements ICandidateService {
     @Override
     public int countCandidates() {
         return candidateDAO.countCandidates();
+    }
+
+    @Override
+    public boolean lockUnlockAccount(int candidateId, String status) {
+        boolean ok = candidateDAO.lockUnlockAccount(candidateId, status);
+        if (ok && "locked".equalsIgnoreCase(status)) {
+            candidateDAO.cancelPendingApplications(candidateId);
+        }
+        return ok;
     }
 }

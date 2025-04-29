@@ -12,4 +12,5 @@ public interface ICandidateDAO {
     List<Candidate> filterCandidatesByGender(String gender);
     List<Candidate> filterCandidatesByTechnology(int technologyId);
     int countCandidates();
+    boolean cancelPendingApplications(int candidateId);
 }

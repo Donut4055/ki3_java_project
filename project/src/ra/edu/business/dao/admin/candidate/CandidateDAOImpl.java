@@ -306,4 +306,18 @@ public class CandidateDAOImpl implements ICandidateDAO {
         }
         return 0;
     }
+
+    @Override
+    public boolean cancelPendingApplications(int candidateId) {
+        String sql = "{CALL sp_cancel_pending_applications(?)}";
+        try (Connection conn = ConnectionDB.getConnection();
+             CallableStatement cs = conn.prepareCall(sql)) {
+            cs.setInt(1, candidateId);
+            cs.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Lỗi khi huỷ pending applications: " + e.getMessage());
+            return false;
+        }
+    }
 }
